@@ -4,25 +4,18 @@ import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 
 /**
- * Representa uma janela no sistema operativo
- * Ao ser criado um objeto desta classe, uma nova janela é criada no sistema operativo com um contexto OpenGL.
+ * <p>Representa uma janela no sistema operativo</p>
+ * <p>Ao ser criado um objeto desta classe, uma nova janela é criada no sistema operativo com um contexto OpenGL.</p>
  */
 public class Window implements AutoCloseable {
     long id;
 
     public Window() {
         glfwDefaultWindowHints();
-        id = glfwCreateWindow(
-                800, 600,
-                "Clone Minecraft - Projeto de Programação (Tiago e Daniel Londoño)",
-                0, 0
-        );
-        if (id == 0)
-            throw new RuntimeException("Failed to create the GLFW window");
-
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
-        glfwMakeContextCurrent(id);
-        glfwSwapInterval(1);
+        id = glfwCreateWindow(800, 600, "Clone Minecraft - Projeto de Programação (Tiago e Daniel Londoño)", 0, 0);
+        if (id == 0) throw new RuntimeException("Falha ao criar janela");
+        glfwMakeContextCurrent(id); // Trazer o contexto da janela para a thread atual
+        glfwSwapInterval(1); // Ativar V-Sync
     }
 
     public boolean shouldClose() {
