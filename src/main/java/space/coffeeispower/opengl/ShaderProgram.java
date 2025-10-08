@@ -1,16 +1,17 @@
 package space.coffeeispower.opengl;
+
 import org.joml.Matrix4d;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 
-import static org.lwjgl.opengl.GL20.*;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
+
+import static org.lwjgl.opengl.GL20.*;
 
 public final class ShaderProgram {
     private final int programId;
@@ -28,15 +29,15 @@ public final class ShaderProgram {
             throw new RuntimeException("Erro ao linkar programa:\n" + log);
         }
     }
-    public ShaderProgram(String vertexResource, String fragmentResource) {
-        // 1️⃣ Ler código GLSL a partir dos resources
+    public ShaderProgram(String vertexResource, String fragmentResource) throws Exception {
+        // Ler código GLSL a partir dos resources
         String vertexSource = readResource(vertexResource);
         String fragmentSource = readResource(fragmentResource);
-        // 2️⃣ Compilar shaders
+        // Compilar shaders
         int vertexShader = compileShader(vertexSource, GL_VERTEX_SHADER);
         int fragmentShader = compileShader(fragmentSource, GL_FRAGMENT_SHADER);
 
-        // 3️⃣ Criar e linkar o programa
+        // Criar e linkar o programa
         programId = glCreateProgram();
         glAttachShader(programId, vertexShader);
         glAttachShader(programId, fragmentShader);
@@ -46,7 +47,7 @@ public final class ShaderProgram {
         glDeleteShader(fragmentShader);
     }
 
-    private String readResource(String resourcePath) {
+    private String readResource(String resourcePath) throws Exception {
         try (InputStream in = getClass().getResourceAsStream(resourcePath)) {
             if (in == null) throw new RuntimeException("Shader não encontrado: " + resourcePath);
 
@@ -54,7 +55,7 @@ public final class ShaderProgram {
                 return reader.lines().collect(Collectors.joining("\n"));
             }
         } catch (Exception e) {
-            throw new RuntimeException("Erro a ler shader resource: " + resourcePath, e);
+            throw new Exception("Erro a ler shader resource: " + resourcePath, e);
         }
     }
 
@@ -96,29 +97,39 @@ public final class ShaderProgram {
     }
 
     public void setUniform(String name, Vector3f v) {
-        int loc = glGetUniformLocation(programId, name);
-        glUniform3f(loc, v.x, v.y, v.z);
+        try (var ignored = bind()) {
+            int loc = glGetUniformLocation(programId, name);
+            glUniform3f(loc, v.x, v.y, v.z);
+        }
     }
 
     public void setUniform(String name, Vector4f v) {
-        int loc = glGetUniformLocation(programId, name);
-        glUniform4f(loc, v.x, v.y, v.z, v.w);
+        try (var ignored = bind()) {
+            int loc = glGetUniformLocation(programId, name);
+            glUniform4f(loc, v.x, v.y, v.z, v.w);
+        }
     }
 
     public void setUniform(String name, float value) {
-        int loc = glGetUniformLocation(programId, name);
-        glUniform1f(loc, value);
+        try (var ignored = bind()) {
+            int loc = glGetUniformLocation(programId, name);
+            glUniform1f(loc, value);
+        }
     }
 
     public void setUniform(String name, int value) {
-        int loc = glGetUniformLocation(programId, name);
-        glUniform1i(loc, value);
+        try (var ignored = bind()) {
+            int loc = glGetUniformLocation(programId, name);
+            glUniform1i(loc, value);
+        }
     }
     public void setUniform(String name, Matrix4d m) {
-        try (var s = MemoryStack.stackPush()) {
-            var buffer = m.get(s.mallocFloat(4*4));
-            int loc = glGetUniformLocation(programId, name);
-            glUniformMatrix4fv(loc, false, buffer);
+        try (var ignored = bind()){
+            try (var s = MemoryStack.stackPush()) {
+                var buffer = m.get(s.mallocFloat(4 * 4));
+                int loc = glGetUniformLocation(programId, name);
+                glUniformMatrix4fv(loc, false, buffer);
+            }
         }
     }
     public int id() {

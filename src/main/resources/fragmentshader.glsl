@@ -1,7 +1,8 @@
 #version 330
-out vec4 FragColor;  // saída: cor do pixel
-in vec3 vColor;
+out vec4 FragColor;
+in vec2 interpolatedTexCoord;
+uniform sampler2D testTexture;
 void main()
 {
-    FragColor = vec4(vColor, 1.0);
+    FragColor = texture(testTexture, interpolatedTexCoord);
 }
