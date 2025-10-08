@@ -7,7 +7,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * <p>Representa uma janela no sistema operativo</p>
  * <p>Ao ser criado um objeto desta classe, uma nova janela é criada no sistema operativo com um contexto OpenGL.</p>
  */
-public class Window implements AutoCloseable {
+public final class Window implements AutoCloseable {
     long id;
 
     public Window() {

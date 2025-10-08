@@ -18,7 +18,7 @@ import static org.lwjgl.opengl.GL33.*;
  * Contem a lógica principal do jogo, ao ser construida, inicializa o jogo e ao ser destruído,
  * libera os recursos.
  * */
-public class Game implements AutoCloseable {
+public final class Game implements AutoCloseable {
     private Window window;
     private final BufferGroup bufferGroup;
     private final ShaderProgram defaultShader;

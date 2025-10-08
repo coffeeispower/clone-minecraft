@@ -8,7 +8,7 @@ import static org.lwjgl.opengl.GL15C.*;
 import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 
-public class Buffer implements Closeable {
+public final class Buffer implements Closeable {
 
     private final int vbo;
     private final BufferType type;

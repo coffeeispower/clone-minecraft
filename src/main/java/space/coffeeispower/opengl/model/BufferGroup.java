@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 import static org.lwjgl.opengl.GL30.*;
 
-public class BufferGroup implements Closeable {
+public final class BufferGroup implements Closeable {
     private final int vao;
     private final ArrayList<Buffer> buffers = new ArrayList<>();
 

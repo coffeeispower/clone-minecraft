@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.glGetIntegerv;
 
-public class BindGuard implements AutoCloseable {
+public final class BindGuard implements AutoCloseable {
     private final int oldId;
     private final Consumer<Integer> bind;
     public BindGuard(int newId, Consumer<Integer> bind, int pname) {

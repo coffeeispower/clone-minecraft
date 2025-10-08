@@ -6,7 +6,7 @@ import org.lwjgl.opengl.GL30;
 import space.coffeeispower.opengl.model.BufferGroup;
 import space.coffeeispower.window.Window;
 
-public class Draw {
+public final class Draw {
     private Draw() {}
     public static void triangles(Window window, BufferGroup bg, ShaderProgram shader, Camera camera, Matrix4d transform) {
         if(camera == null) camera = Camera.DEFAULT_CAMERA;
