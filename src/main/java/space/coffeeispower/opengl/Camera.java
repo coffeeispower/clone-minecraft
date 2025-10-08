@@ -16,7 +16,7 @@ public record Camera(Vector3d position, Vector3d rotation, Mode mode) {
             case Perspective perspective -> new Matrix4d().perspective(
                     perspective.fov,
                     (double) window.width() / (double) window.height(),
-                    0.0,
+                    0.001,
                     1000
             );
             case Orthogonal ignored -> new Matrix4d().ortho2D(0, window.width(), window.height(), 0);
