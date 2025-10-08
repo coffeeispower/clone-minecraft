@@ -26,6 +26,9 @@ switch (OperatingSystem.current()) {
 }
 repositories {
     mavenCentral()
+    maven {
+        url "https://oss.sonatype.org/content/repositories/snapshots/"
+    }
 }
 
 dependencies {
@@ -47,6 +50,7 @@ dependencies {
     implementation "org.lwjgl:lwjgl-opengl::$lwjglNatives"
     implementation "org.lwjgl:lwjgl-stb::$lwjglNatives"
     implementation "org.jspecify:jspecify:1.0.0"
+    implementation "org.joml:joml:1.10.8"
 }
 
 test {

@@ -1,6 +1,11 @@
 package space.coffeeispower.opengl;
+import org.joml.Matrix4d;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
+import org.lwjgl.opengl.GL30;
+import org.lwjgl.system.MemoryStack;
+
 import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL30.*;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -15,7 +20,7 @@ public class ShaderProgram {
         int status = glGetProgrami(programId, GL_LINK_STATUS);
         String log = glGetProgramInfoLog(programId);
 
-        if (log != null && !log.isBlank()) {
+        if (!log.isBlank()) {
             System.err.println("[Program Log]:\n" + log);
         }
 
@@ -62,7 +67,7 @@ public class ShaderProgram {
         int status = glGetShaderi(shaderId, GL_COMPILE_STATUS);
         String log = glGetShaderInfoLog(shaderId);
 
-        if (log != null && !log.isBlank()) {
+        if (!log.isBlank()) {
             System.err.println("[Shader Log] " + shaderTypeName(type) + ":\n" + log);
         }
 
@@ -81,26 +86,23 @@ public class ShaderProgram {
         };
     }
 
-    public void bind() {
-        glUseProgram(programId);
+    public BindGuard bind() {
+        return new BindGuard(programId, GL30::glUseProgram, GL_CURRENT_PROGRAM);
     }
 
-    public static void unbindAll() {
-        glUseProgram(0);
-    }
 
     public void cleanup() {
         glDeleteProgram(programId);
     }
 
-    public void setUniform(String name, float v1, float v2, float v3) {
+    public void setUniform(String name, Vector3f v) {
         int loc = glGetUniformLocation(programId, name);
-        glUniform3f(loc, v1, v2, v3);
+        glUniform3f(loc, v.x, v.y, v.z);
     }
 
-    public void setUniform(String name, float v1, float v2, float v3, float v4) {
+    public void setUniform(String name, Vector4f v) {
         int loc = glGetUniformLocation(programId, name);
-        glUniform4f(loc, v1, v2, v3, v4);
+        glUniform4f(loc, v.x, v.y, v.z, v.w);
     }
 
     public void setUniform(String name, float value) {
@@ -112,8 +114,14 @@ public class ShaderProgram {
         int loc = glGetUniformLocation(programId, name);
         glUniform1i(loc, value);
     }
-
-    public int getId() {
+    public void setUniform(String name, Matrix4d m) {
+        try (var s = MemoryStack.stackPush()) {
+            var buffer = m.get(s.mallocFloat(4*4));
+            int loc = glGetUniformLocation(programId, name);
+            glUniformMatrix4fv(loc, false, buffer);
+        }
+    }
+    public int id() {
         return programId;
     }
 }

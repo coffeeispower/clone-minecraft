@@ -1,10 +1,12 @@
 package space.coffeeispower;
 
+import org.joml.Matrix4d;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
-import space.coffeeispower.opengl.Buffer;
-import space.coffeeispower.opengl.Model;
+import space.coffeeispower.opengl.Draw;
+import space.coffeeispower.opengl.model.Buffer;
+import space.coffeeispower.opengl.model.BufferGroup;
 import space.coffeeispower.opengl.ShaderProgram;
 import space.coffeeispower.window.Window;
 
@@ -18,9 +20,9 @@ import static org.lwjgl.opengl.GL11.*;
  * */
 public class Game implements AutoCloseable {
     private Window window;
-    private Model model;
-    private Buffer positionsBuffer;
-    private ShaderProgram defaultShader;
+    private final BufferGroup bufferGroup;
+    private final ShaderProgram defaultShader;
+    private double angle;
     public Game(
         // Isto precisa de ser um valor criado de maneira preguiçosa, porque apenas é possível criar janelas
         // após inicializar o GLFW
@@ -33,15 +35,19 @@ public class Game implements AutoCloseable {
         GL.createCapabilities();
 
         {
-            this.model = new Model();
-            model.bind();
-            var buffer = new Buffer(new double[] {
+            this.bufferGroup = new BufferGroup();
+            // posições
+            bufferGroup.addBuffer(new Buffer(new double[] {
                     0.0f,  0.5f, 0.0f,  // vértice 1
                     -0.5f, -0.5f, 0.0f,  // vértice 2
                     0.5f, -0.5f, 0.0f   // vértice 3
-            }, 3);
-            buffer.bindToCurrentModel(0);
-            positionsBuffer = buffer;
+            }, 3));
+            // cores
+            bufferGroup.addBuffer(new Buffer(new double[] {
+                    1.0f,  0.0f, 0.0f,  // vértice 1
+                    0.0f, 1.0f, 0.0f,  // vértice 2
+                    0.0f, 0.0f, 1.0f   // vértice 3
+            }, 3));
             this.defaultShader = new ShaderProgram("/vertexshader.glsl", "/fragmentshader.glsl");
         }
     }
@@ -61,8 +67,8 @@ public class Game implements AutoCloseable {
             glViewport(0, 0, window.width(), window.height()); // Ter a certeza que o OpenGL está sincronizado com o tamanho da janela
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar o ultimo frame
             glClearColor(0.1f, 0.1f, 0.1f, 1); // Preencher a janela com cinzento
-            defaultShader.bind();
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            Draw.triangles(window, bufferGroup, defaultShader, /*camera (null significa camera padrão: perspetiva 70º de fov)*/null, new Matrix4d().translate(0, 0, -3).rotateY(Math.toRadians(angle)));
+            angle++;
             GLFW.glfwPollEvents(); // Ler teclado e rato e outros inputs
             window.swapBuffers(); // Enviar tudo o que foi desenhado para a janela e para o ecrã
         }
