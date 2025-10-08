@@ -15,9 +15,11 @@ public final class Camera {
         this.rotation = rotation;
         this.mode = mode;
     }
-
+    public Camera(Mode mode) {
+        this(new Vector3d(), new Vector3d(), mode);
+    }
     public Matrix4d toViewMatrix() {
-        return new Matrix4d().translate(new Vector3d(position).negate()).rotateXYZ(new Vector3d(rotation).negate());
+        return new Matrix4d().rotateXYZ(new Vector3d(rotation).negate()).translate(new Vector3d(position).negate());
     }
 
     public Matrix4d toProjectionMatrix(Window window) {

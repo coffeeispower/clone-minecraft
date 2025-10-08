@@ -4,6 +4,7 @@ import org.joml.Matrix4d;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import space.coffeeispower.opengl.Camera;
 import space.coffeeispower.opengl.Draw;
 import space.coffeeispower.opengl.model.Buffer;
 import space.coffeeispower.opengl.model.BufferGroup;
@@ -23,6 +24,8 @@ public final class Game implements AutoCloseable {
     private final BufferGroup bufferGroup;
     private final ShaderProgram defaultShader;
     private double angle;
+    private final FPSCameraController fpsCamera;
+    private double lastTimeSec = System.currentTimeMillis()/1000.;
     public Game(
         // Isto precisa de ser um valor criado de maneira preguiçosa, porque apenas é possível criar janelas
         // após inicializar o GLFW
@@ -105,6 +108,7 @@ public final class Game implements AutoCloseable {
             }, 3));
             this.defaultShader = new ShaderProgram("/vertexshader.glsl", "/fragmentshader.glsl");
         }
+        fpsCamera = new FPSCameraController(window, new Camera(new Camera.Perspective(70)));
     }
     /**
      * Retorna a janela principal controlada pelo jogo
@@ -119,13 +123,18 @@ public final class Game implements AutoCloseable {
     public void loop() {
         Objects.requireNonNull(window);
         while(!window.shouldClose()) {
+            var now = System.currentTimeMillis()/1000.;
+            var deltaTime = now - lastTimeSec;
+            lastTimeSec = now;
+            fpsCamera.update(deltaTime);
             glViewport(0, 0, window.width(), window.height()); // Ter a certeza que o OpenGL está sincronizado com o tamanho da janela
             glClearColor(0.1f, 0.1f, 0.1f, 1); // Preencher a janela com cinzento
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar o ultimo frame
-            Draw.triangles(window, bufferGroup, defaultShader, /*camera (null significa camera padrão: perspetiva 70º de fov)*/null, new Matrix4d().translate(0, -1, -3).rotateY(Math.toRadians(angle)));
+            Draw.triangles(window, bufferGroup, defaultShader, fpsCamera.camera(), new Matrix4d().translate(0, -1, -3).rotateY(Math.toRadians(angle)));
             angle++;
-            GLFW.glfwPollEvents(); // Ler teclado e rato e outros inputs
             window.swapBuffers(); // Enviar tudo o que foi desenhado para a janela e para o ecrã
+            GLFW.glfwPollEvents(); // Ler teclado e rato e outros inputs
+
         }
     }
 

@@ -43,4 +43,17 @@ public final class Window implements AutoCloseable {
         glfwFreeCallbacks(id);
         glfwDestroyWindow(id);
     }
+
+    public boolean isKeyPressed(int key) {
+        return glfwGetKey(id, key) == GLFW_PRESS;
+    }
+    public void setGrab(boolean grabbed) {
+        glfwSetInputMode(id, GLFW_CURSOR, grabbed ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    }
+    public double[] getCursorPos() {
+        double[] posX = new double[1];
+        double[] posY = new double[1];
+        glfwGetCursorPos(id, posX, posY);
+        return new double[]{posX[0], posY[0]};
+    }
 }
