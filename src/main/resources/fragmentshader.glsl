@@ -1,8 +1,8 @@
 #version 330
 out vec4 FragColor;
 in vec2 interpolatedTexCoord;
-uniform sampler2D testTexture;
+uniform sampler2D textureAtlas;
 void main()
 {
-    FragColor = texture(testTexture, interpolatedTexCoord);
+    FragColor = texture(textureAtlas, interpolatedTexCoord);
 }

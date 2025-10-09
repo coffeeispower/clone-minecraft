@@ -7,12 +7,13 @@ import space.coffeeispower.window.Window;
 import static org.lwjgl.glfw.GLFW.*;
 
 public final class FPSCameraController {
+    private static final float SENSITIVITY = 0.002f;
+    private static final float SPEED = 5.0f;
+    private static final float FAST_SPEED = 10.0f;
     private final Window window;
     private final Camera camera;
     private boolean enabled = false;
     private double lastMouseX, lastMouseY;
-    private static final float SENSITIVITY = 0.002f;
-    private static final float SPEED = 5.0f;
 
     public FPSCameraController(Window window, Camera camera) {
         this.window = window;
@@ -58,7 +59,7 @@ public final class FPSCameraController {
         Vector3d position = camera.position();
         Vector3d forward = getForward();
         Vector3d right = getRight();
-        float velocity = (float) (SPEED * deltaTime);
+        float velocity = (float) ((window.isKeyPressed(GLFW_KEY_LEFT_CONTROL) ? FAST_SPEED : SPEED) * deltaTime);
 
         if (window.isKeyPressed(GLFW_KEY_W))
             position.add(new Vector3d(forward).mul(velocity));
@@ -74,7 +75,13 @@ public final class FPSCameraController {
 
         if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT))
             position.add(new Vector3d(0, -velocity, 0));
-
+        System.out.print("X: ");
+        System.out.print(position.x);
+        System.out.print(" Y: ");
+        System.out.print(position.y);
+        System.out.print(" Z: ");
+        System.out.print(position.z);
+        System.out.print("\r");
     }
 
     private Vector3d getForward() {

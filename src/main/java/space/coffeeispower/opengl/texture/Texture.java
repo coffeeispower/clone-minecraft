@@ -1,7 +1,6 @@
 package space.coffeeispower.opengl.texture;
 
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.stb.STBImage;
 import space.coffeeispower.opengl.TextureBindGuard;
 
 import java.io.IOException;
@@ -10,12 +9,12 @@ public class Texture {
     private int id;
 
     public Texture(String resourcePath) throws IOException {
-        createTexture(ImageData.loadImageDataFromResource(resourcePath));
+        this(ImageData.loadImageDataFromResource(resourcePath));
     }
 
     /**
      * Carrega uma imagem em RAM para a VRAM na GPU
-     * @param data O conteudo da image, este construtor pega ownership deste data e dá free no fim, por tanto não uses este data depois de chamar este construtor
+     * @param data O conteudo da imagem
      * */
     public Texture(ImageData data) {
         createTexture(data);
@@ -32,7 +31,6 @@ public class Texture {
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8,
                 data.width(), data.height(), 0, GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, data.data());
 
-        STBImage.stbi_image_free(data.data());
     }
     public TextureBindGuard bind(int slot) {
         return new TextureBindGuard(id, (byte) slot);

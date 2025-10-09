@@ -7,10 +7,13 @@ import org.lwjgl.opengl.GL;
 import space.coffeeispower.opengl.Camera;
 import space.coffeeispower.opengl.Draw;
 import space.coffeeispower.opengl.ShaderProgram;
-import space.coffeeispower.opengl.model.Buffer;
 import space.coffeeispower.opengl.model.BufferGroup;
 import space.coffeeispower.opengl.texture.TextureAtlas;
 import space.coffeeispower.window.Window;
+import space.coffeeispower.world.BlockType;
+import space.coffeeispower.world.Chunk;
+import space.coffeeispower.world.ChunkMeshGenerator;
+import space.coffeeispower.world.WorldGen;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -24,9 +27,8 @@ public final class Game implements AutoCloseable {
     private Window window;
     private final BufferGroup bufferGroup;
     private final ShaderProgram defaultShader;
-    private double angle;
     private final FPSCameraController fpsCamera;
-    private final TextureAtlas testTextureAtlas;
+    private final TextureAtlas blockTextureAtlas;
     private double lastTimeSec = System.currentTimeMillis()/1000.;
     public Game(
         // Isto precisa de ser um valor criado de maneira preguiçosa, porque apenas é possível criar janelas
@@ -41,90 +43,14 @@ public final class Game implements AutoCloseable {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
 
-        //////////// modelos e shaders de teste
-
-        this.bufferGroup = new BufferGroup();
-        // posições
-        bufferGroup.addBuffer(new Buffer(new double[]{
-                // frente
-                -0.5, -0.5,  0.5,
-                0.5, -0.5,  0.5,
-                0.5,  0.5,  0.5,
-                0.5,  0.5,  0.5,
-                -0.5,  0.5,  0.5,
-                -0.5, -0.5,  0.5,
-
-                // trás
-                -0.5, -0.5, -0.5,
-                -0.5,  0.5, -0.5,
-                0.5,  0.5, -0.5,
-                0.5,  0.5, -0.5,
-                0.5, -0.5, -0.5,
-                -0.5, -0.5, -0.5,
-
-                // esquerda
-                -0.5,  0.5,  0.5,
-                -0.5,  0.5, -0.5,
-                -0.5, -0.5, -0.5,
-                -0.5, -0.5, -0.5,
-                -0.5, -0.5,  0.5,
-                -0.5,  0.5,  0.5,
-
-                // direita
-                0.5,  0.5,  0.5,
-                0.5, -0.5, -0.5,
-                0.5,  0.5, -0.5,
-                0.5, -0.5, -0.5,
-                0.5,  0.5,  0.5,
-                0.5, -0.5,  0.5,
-
-                // topo
-                -0.5,  0.5, -0.5,
-                -0.5,  0.5,  0.5,
-                0.5,  0.5,  0.5,
-                0.5,  0.5,  0.5,
-                0.5,  0.5, -0.5,
-                -0.5,  0.5, -0.5,
-
-                // fundo
-                -0.5, -0.5, -0.5,
-                0.5, -0.5, -0.5,
-                0.5, -0.5,  0.5,
-                0.5, -0.5,  0.5,
-                -0.5, -0.5,  0.5,
-                -0.5, -0.5, -0.5
-        }, 3));
-
-        // coordenadas de textura (36 vértices × 2 componentes)
-        bufferGroup.addBuffer(new Buffer(new double[]{
-                // frente
-                0,0, 1,0, 1,1,
-                1,1, 0,1, 0,0,
-
-                // trás
-                0,0, 0,1, 1,1,
-                1,1, 1,0, 0,0,
-
-                // esquerda
-                1,1, 1,0, 0,0,
-                0,0, 0,1, 1,1,
-
-                // direita
-                1,1, 0,0, 1,0,
-                0,0, 1,1, 0,1,
-
-                // topo
-                0,1, 0,0, 1,0,
-                1,0, 1,1, 0,1,
-
-                // fundo
-                0,1, 1,1, 1,0,
-                1,0, 0,0, 0,1
-        }, 2));
-
         this.defaultShader = new ShaderProgram("/vertexshader.glsl", "/fragmentshader.glsl");
+
+        blockTextureAtlas = new TextureAtlas(BlockType.getAllTexturesPaths().toArray(new String[0]));
+        Chunk chunk = new Chunk(0, 0);
+        WorldGen.generateChunk(chunk);
+        this.bufferGroup = ChunkMeshGenerator.generateMeshForChunk(chunk, blockTextureAtlas);
+
         fpsCamera = new FPSCameraController(window, new Camera(new Camera.Perspective(70)));
-        testTextureAtlas = new TextureAtlas("/testtexture1.png", "/testtexture2.png");
     }
     /**
      * Retorna a janela principal controlada pelo jogo
@@ -146,11 +72,10 @@ public final class Game implements AutoCloseable {
             glViewport(0, 0, window.width(), window.height()); // Ter a certeza que o OpenGL está sincronizado com o tamanho da janela
             glClearColor(0.1f, 0.1f, 0.1f, 1); // Preencher a janela com cinzento
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar o ultimo frame
-            try (var ignored = testTextureAtlas.texture().bind(0)) {
-                defaultShader.setUniform("testTexture", 0);
-                Draw.triangles(window, bufferGroup, defaultShader, fpsCamera.camera(), new Matrix4d().translate(0, -1, -3).rotateY(Math.toRadians(angle)));
+            try (var ignored = blockTextureAtlas.texture().bind(0)) {
+                defaultShader.setUniform("textureAtlas", 0);
+                Draw.triangles(window, bufferGroup, defaultShader, fpsCamera.camera(), new Matrix4d());
             }
-            angle++;
             window.swapBuffers(); // Enviar tudo o que foi desenhado para a janela e para o ecrã
             GLFW.glfwPollEvents(); // Ler teclado e rato e outros inputs
 
