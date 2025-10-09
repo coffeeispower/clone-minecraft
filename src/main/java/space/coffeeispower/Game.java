@@ -7,9 +7,9 @@ import org.lwjgl.opengl.GL;
 import space.coffeeispower.opengl.Camera;
 import space.coffeeispower.opengl.Draw;
 import space.coffeeispower.opengl.ShaderProgram;
-import space.coffeeispower.opengl.Texture;
 import space.coffeeispower.opengl.model.Buffer;
 import space.coffeeispower.opengl.model.BufferGroup;
+import space.coffeeispower.opengl.texture.TextureAtlas;
 import space.coffeeispower.window.Window;
 
 import java.util.Objects;
@@ -26,7 +26,7 @@ public final class Game implements AutoCloseable {
     private final ShaderProgram defaultShader;
     private double angle;
     private final FPSCameraController fpsCamera;
-    private final Texture testTexture;
+    private final TextureAtlas testTextureAtlas;
     private double lastTimeSec = System.currentTimeMillis()/1000.;
     public Game(
         // Isto precisa de ser um valor criado de maneira preguiçosa, porque apenas é possível criar janelas
@@ -124,7 +124,7 @@ public final class Game implements AutoCloseable {
 
         this.defaultShader = new ShaderProgram("/vertexshader.glsl", "/fragmentshader.glsl");
         fpsCamera = new FPSCameraController(window, new Camera(new Camera.Perspective(70)));
-        testTexture = new Texture("/testtexture.png");
+        testTextureAtlas = new TextureAtlas("/testtexture1.png", "/testtexture2.png");
     }
     /**
      * Retorna a janela principal controlada pelo jogo
@@ -146,7 +146,7 @@ public final class Game implements AutoCloseable {
             glViewport(0, 0, window.width(), window.height()); // Ter a certeza que o OpenGL está sincronizado com o tamanho da janela
             glClearColor(0.1f, 0.1f, 0.1f, 1); // Preencher a janela com cinzento
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar o ultimo frame
-            try (var ignored = testTexture.bind(0)) {
+            try (var ignored = testTextureAtlas.texture().bind(0)) {
                 defaultShader.setUniform("testTexture", 0);
                 Draw.triangles(window, bufferGroup, defaultShader, fpsCamera.camera(), new Matrix4d().translate(0, -1, -3).rotateY(Math.toRadians(angle)));
             }
