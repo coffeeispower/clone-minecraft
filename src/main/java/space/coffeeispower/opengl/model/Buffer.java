@@ -14,7 +14,7 @@ public final class Buffer implements Closeable {
     private final BufferType type;
     private final int dimensions;
     private int size;
-
+    private boolean closed;
     public Buffer(int[] buffer, int dimensions) {
 
         if (dimensions > 0 && buffer.length % dimensions != 0) {
@@ -76,7 +76,9 @@ public final class Buffer implements Closeable {
 
     @Override
     public void close() {
-        glDeleteBuffers(this.vbo);
+        if(!closed)
+            glDeleteBuffers(this.vbo);
+        closed = true;
     }
 
     public int size() {

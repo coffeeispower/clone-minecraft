@@ -1,16 +1,16 @@
 package space.coffeeispower.world;
 
-import org.joml.SimplexNoise;
+import org.lwjgl.stb.STBPerlin;
 
 
 public final class WorldGen {
-    public static void generateChunk(Chunk chunk) {
+    public static void generateChunk(Chunk chunk, int seed) {
         for (int x = 0; x < Chunk.CHUNK_WIDTH; x++) {
             for (int z = 0; z < Chunk.CHUNK_WIDTH; z++) {
                 int worldX = chunk.getPosition().x() * Chunk.CHUNK_WIDTH + x;
                 int worldZ = chunk.getPosition().y() * Chunk.CHUNK_WIDTH + z;
 
-                int height = getHeight(worldX, worldZ);
+                int height = getHeight(worldX, worldZ,  seed);
 
                 for (int y = 0; y < Chunk.CHUNK_HEIGHT; y++) {
                     if (y > height) {
@@ -29,9 +29,9 @@ public final class WorldGen {
         }
     }
 
-    private static int getHeight(int x, int z) {
+    private static int getHeight(int x, int z, int seed) {
         // Função de ruído simples
-        double noise = SimplexNoise.noise(x * 0.05f, z * 0.05f); // normalizado entre -1 e 1
+        double noise = STBPerlin.stb_perlin_noise3_seed(x * 0.05f, 0,  z * 0.05f, 0, 0, 0, seed); // normalizado entre -1 e 1
         int minHeight = 5;
         int maxHeight = 20;
         return minHeight + (int)((noise + 1) / 2 * (maxHeight - minHeight));

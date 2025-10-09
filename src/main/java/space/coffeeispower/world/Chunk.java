@@ -9,7 +9,6 @@ public class Chunk {
     public static int CHUNK_HEIGHT = 256;
     private final Vector2i position;
     private final short[][][] blocks = new short[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_WIDTH];
-
     public Chunk(Vector2i position) {
         this.position = position;
     }

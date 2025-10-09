@@ -180,16 +180,6 @@ public record BlockModel(String topPath, String bottomPath, String frontPath, St
         for (double v : faceVertices)
             vertices.add(v);
 
-        // Cada face é um quadrado -> 6 vértices (2 triângulos)
-        // A sequência de UVs deve corresponder à ordem dos vértices
-//        double[] faceUVs = new double[]{
-//                uv.left(), uv.top(),
-//                uv.right(), uv.top(),
-//                uv.right(), uv.bottom(),
-//                uv.right(), uv.bottom(),
-//                uv.left(), uv.bottom(),
-//                uv.left(), uv.top()
-//        };
         for (double d : srcUv)
             uvs.add(d);
     }

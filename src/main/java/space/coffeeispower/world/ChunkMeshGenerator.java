@@ -1,15 +1,13 @@
 package space.coffeeispower.world;
 
-import space.coffeeispower.opengl.model.Buffer;
-import space.coffeeispower.opengl.model.BufferGroup;
 import space.coffeeispower.opengl.texture.TextureAtlas;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChunkMeshGenerator {
-
-    public static BufferGroup generateMeshForChunk(Chunk chunk, TextureAtlas atlas) {
+    public record ChunkMesh(double[] vertices, double[] uv) {}
+    public static ChunkMesh generateMeshForChunk(Chunk chunk, TextureAtlas atlas) {
         List<Double> vertices = new ArrayList<>();
         List<Double> uvs = new ArrayList<>();
 
@@ -40,11 +38,7 @@ public class ChunkMeshGenerator {
             }
         }
 
-        // Cria os buffers (posição e UVs)
-        BufferGroup group = new BufferGroup();
-        group.addBuffer(new Buffer(vertices.stream().mapToDouble((d) -> d).toArray(), 3)); // posições
-        group.addBuffer(new Buffer(uvs.stream().mapToDouble((d) -> d).toArray(), 2)); // UVs
-        return group;
+        return new ChunkMesh(vertices.stream().mapToDouble((d) -> d).toArray(), uvs.stream().mapToDouble((d) -> d).toArray());
     }
 
     private static boolean isFaceVisible(Chunk chunk, int x, int y, int z) {

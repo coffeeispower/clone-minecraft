@@ -8,8 +8,8 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public final class FPSCameraController {
     private static final float SENSITIVITY = 0.002f;
-    private static final float SPEED = 5.0f;
-    private static final float FAST_SPEED = 10.0f;
+    private static final float SPEED = 10.0f;
+    private static final float FAST_SPEED = 40.0f;
     private final Window window;
     private final Camera camera;
     private boolean enabled = false;
@@ -75,13 +75,13 @@ public final class FPSCameraController {
 
         if (window.isKeyPressed(GLFW_KEY_LEFT_SHIFT))
             position.add(new Vector3d(0, -velocity, 0));
-        System.out.print("X: ");
-        System.out.print(position.x);
-        System.out.print(" Y: ");
-        System.out.print(position.y);
-        System.out.print(" Z: ");
-        System.out.print(position.z);
-        System.out.print("\r");
+//        System.out.print("X: ");
+//        System.out.print(position.x);
+//        System.out.print(" Y: ");
+//        System.out.print(position.y);
+//        System.out.print(" Z: ");
+//        System.out.print(position.z);
+//        System.out.print("\r");
     }
 
     private Vector3d getForward() {

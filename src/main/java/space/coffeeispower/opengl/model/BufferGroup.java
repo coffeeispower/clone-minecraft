@@ -41,16 +41,25 @@ public final class BufferGroup implements Closeable {
         }
         try (var ignored = bind()) {
             buffer.bindToCurrentModel(index);
-            buffers.set(index, buffer);
+            buffers.set(index, buffer).close();
         }
     }
-
+    public Buffer getBuffer(int index) {
+        return buffers.get(index);
+    }
     public int id() {
         return vao;
     }
-
+    private boolean closed;
     @Override
     public void close() {
-        glDeleteVertexArrays(this.vao);
+        if(!closed) {
+            glDeleteVertexArrays(this.vao);
+            for (Buffer buffer : buffers) {
+                buffer.close();
+            }
+        }
+        closed = true;
+
     }
 }
