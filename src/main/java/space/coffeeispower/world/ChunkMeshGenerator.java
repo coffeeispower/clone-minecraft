@@ -29,7 +29,6 @@ public class ChunkMeshGenerator {
                     if (!(top || bottom || left || right || front || back))
                         continue; // bloco completamente oculto
 
-                    int baseVertex = vertices.size() / 3;
 
                     type.model().appendFaces(vertices, uvs, atlas,
                             top, bottom, left, right, front, back, x, y, z);

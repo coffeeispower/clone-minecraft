@@ -18,6 +18,9 @@ public final class Camera {
     public Camera(Mode mode) {
         this(new Vector3d(), new Vector3d(), mode);
     }
+    public Camera(Vector3d position, Mode mode) {
+        this(position, new Vector3d(), mode);
+    }
     public Matrix4d toViewMatrix() {
         return new Matrix4d().rotateXYZ(new Vector3d(rotation).negate()).translate(new Vector3d(position).negate());
     }
@@ -27,8 +30,8 @@ public final class Camera {
             case Perspective perspective -> new Matrix4d().perspective(
                     perspective.fov,
                     (double) window.width() / (double) window.height(),
-                    0.001,
-                    1000
+                    0.01,
+                    16*20
             );
             case Orthogonal ignored -> new Matrix4d().ortho2D(0, window.width(), window.height(), 0);
         };

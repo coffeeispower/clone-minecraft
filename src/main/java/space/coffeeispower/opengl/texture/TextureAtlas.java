@@ -2,12 +2,13 @@ package space.coffeeispower.opengl.texture;
 
 import org.lwjgl.BufferUtils;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class TextureAtlas {
+public final class TextureAtlas implements Closeable {
     private final Texture texture;
     private final Map<String, UVCoords> uvMap = new HashMap<>();
 
@@ -94,4 +95,9 @@ public final class TextureAtlas {
     }
 
     public record UVCoords(float left, float bottom, float right, float top) {}
+
+    @Override
+    public void close() {
+        texture().close();
+    }
 }

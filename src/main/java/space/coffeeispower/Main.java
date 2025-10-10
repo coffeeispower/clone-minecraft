@@ -7,7 +7,8 @@ public final class Main {
         try (var game = new Game(Window::new)) {
             game.loop();
         } catch (Exception e) {
-            System.err.println("Falha ao inicializar o jogo: " + e);
+            System.err.println("O jogo crashou: " + e);
+            e.printStackTrace();
         }
     }
 }

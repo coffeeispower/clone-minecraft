@@ -1,6 +1,7 @@
 package space.coffeeispower.world;
 
 import org.joml.Matrix4d;
+import space.coffeeispower.entity.Entity;
 import space.coffeeispower.opengl.Camera;
 import space.coffeeispower.opengl.Draw;
 import space.coffeeispower.opengl.ShaderProgram;
@@ -16,6 +17,12 @@ public class WorldRenderer {
                 shader.setUniform("textureAtlas", 0);
                 Draw.triangles(window, loadedChunk.model(), shader, camera, new Matrix4d().translate(chunkPositionAsWorldCoord.x, 0, chunkPositionAsWorldCoord.y));
             }
+        }
+    }
+
+    public static void renderEntities(World world, Window window, Camera camera) {
+        for (Entity<?> entity : world.getEntities()) {
+            entity.getRenderer().render(window, camera);
         }
     }
 }

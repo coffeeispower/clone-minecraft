@@ -22,6 +22,7 @@ public class Chunk {
     }
 
     public BlockType getBlockAt(int x, int y, int z) {
+
         var ordinal = blocks[x][y][z];
         return BlockType.values()[ordinal];
     }

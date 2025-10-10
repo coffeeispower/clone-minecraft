@@ -7,13 +7,14 @@ import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.stream.Collectors;
 
 import static org.lwjgl.opengl.GL20.*;
 
-public final class ShaderProgram {
+public final class ShaderProgram implements Closeable {
     private final int programId;
 
     private void linkProgram() {
@@ -91,8 +92,8 @@ public final class ShaderProgram {
         return new BindGuard(programId, GL30::glUseProgram, GL_CURRENT_PROGRAM);
     }
 
-
-    public void cleanup() {
+    @Override
+    public void close() {
         glDeleteProgram(programId);
     }
 

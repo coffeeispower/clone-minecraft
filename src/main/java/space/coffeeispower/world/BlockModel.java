@@ -53,9 +53,9 @@ public record BlockModel(String topPath, String bottomPath, String frontPath, St
                             uv.left(), uv.top(),
                             uv.right(), uv.bottom(),
 
-                            uv.right(), uv.bottom(),
                             uv.left(), uv.bottom(),
-                            uv.right(), uv.top()
+                            uv.right(), uv.bottom(),
+                            uv.left(), uv.top()
 
                     }
             );
@@ -74,12 +74,12 @@ public record BlockModel(String topPath, String bottomPath, String frontPath, St
                             x + 0.5, y - 0.5, z - 0.5,
                             x - 0.5, y - 0.5, z - 0.5,
                     }, new double[]{
-                            uv.right(), uv.bottom(),
-                            uv.left(), uv.top(),
+                            uv.left(), uv.bottom(),
                             uv.right(), uv.top(),
                             uv.left(), uv.top(),
-                            uv.right(), uv.bottom(),
-                            uv.left(), uv.bottom()
+                            uv.right(), uv.top(),
+                            uv.left(), uv.bottom(),
+                            uv.right(), uv.bottom()
                     });
         }
 

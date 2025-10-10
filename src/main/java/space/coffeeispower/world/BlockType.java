@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum BlockType {
-    Air(null),
+    Air(null, false),
     Bedrock(new BlockModel("/textures/bedrock/bedrock.png")),
     Dirt(new BlockModel("/textures/dirt/dirt.png")),
     Grass(new BlockModel("/textures/grass/top.png", "/textures/grass/bottom.png", "/textures/grass/side.png")),
@@ -16,9 +16,15 @@ public enum BlockType {
     ;
     @Nullable
     private final BlockModel model;
+    private boolean isSolid = true;
 
     BlockType(@Nullable BlockModel blockModel) {
         model = blockModel;
+    }
+
+    BlockType(@Nullable BlockModel blockModel, boolean isSolid) {
+        model = blockModel;
+        this.isSolid = isSolid;
     }
 
     public static Set<String> getAllTexturesPaths() {
@@ -38,5 +44,9 @@ public enum BlockType {
     @Nullable
     public BlockModel model() {
         return model;
+    }
+
+    public boolean isSolid() {
+        return isSolid;
     }
 }

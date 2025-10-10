@@ -1,11 +1,13 @@
 package space.coffeeispower.opengl.texture;
 
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL33;
 import space.coffeeispower.opengl.TextureBindGuard;
 
+import java.io.Closeable;
 import java.io.IOException;
 
-public class Texture {
+public class Texture implements Closeable {
     private int id;
 
     public Texture(String resourcePath) throws IOException {
@@ -40,4 +42,8 @@ public class Texture {
         return id;
     }
 
+    @Override
+    public void close() {
+        GL33.glDeleteTextures(id);
+    }
 }
