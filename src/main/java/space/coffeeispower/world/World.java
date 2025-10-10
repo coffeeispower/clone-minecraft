@@ -2,9 +2,7 @@ package space.coffeeispower.world;
 
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2i;
-import org.joml.Vector3d;
 import space.coffeeispower.entity.Entity;
-import space.coffeeispower.entity.FallingCollidingEntity;
 import space.coffeeispower.opengl.model.Buffer;
 import space.coffeeispower.opengl.model.BufferGroup;
 import space.coffeeispower.opengl.texture.TextureAtlas;
@@ -21,11 +19,13 @@ public class World implements Closeable {
     private final ArrayList<Entity<?>> entities = new ArrayList<>();
     private sealed interface ChunkLoadState {}
 
-    private record GeneratingTerrain(Thread thread) implements ChunkLoadState {}
+    private record GeneratingTerrain() implements ChunkLoadState {}
     private record GeneratedTerrain(Chunk chunk) implements ChunkLoadState {}
-    private record GeneratingMesh(Thread thread) implements ChunkLoadState {}
+    private record GeneratingMesh() implements ChunkLoadState {}
     private record GeneratedMesh(ChunkMeshGenerator.ChunkMesh mesh) implements ChunkLoadState {}
     private record MeshUploaded(BufferGroup model) implements ChunkLoadState {}
+    private record NeedsRemeshing(BufferGroup model) implements ChunkLoadState {}
+    private record NeedsReupload(ChunkMeshGenerator.ChunkMesh mesh, BufferGroup model) implements ChunkLoadState {}
     private final int seed;
     public World(int seed) {
         this.seed = seed;
@@ -55,7 +55,7 @@ public class World implements Closeable {
                         }
                         var thread = createChunkGeneratorThread(currentChunkPos);
                         synchronized (chunkLoadStates) {
-                            chunkLoadStates.put(new Vector2i(currentChunkPos), new GeneratingTerrain(thread));
+                            chunkLoadStates.put(new Vector2i(currentChunkPos), new GeneratingTerrain());
                         }
                         thread.start();
                     }
@@ -70,7 +70,19 @@ public class World implements Closeable {
                             }
                         });
                         synchronized (chunkLoadStates) {
-                            chunkLoadStates.put(chunkPos, new GeneratingMesh(thread));
+                            chunkLoadStates.put(chunkPos, new GeneratingMesh());
+                        }
+                        thread.start();
+                    }
+                    case NeedsRemeshing needsRemeshing -> {
+                        var chunkPos = new Vector2i(currentChunkPos);
+                        var thread = new Thread(() -> {
+                            synchronized (chunkLoadStates) {
+                                chunkLoadStates.put(chunkPos, new NeedsReupload(ChunkMeshGenerator.generateMeshForChunk(chunk, atlas), needsRemeshing.model()));
+                            }
+                        });
+                        synchronized (chunkLoadStates) {
+                            chunkLoadStates.put(chunkPos, new GeneratingMesh());
                         }
                         thread.start();
                     }
@@ -81,6 +93,14 @@ public class World implements Closeable {
                         var model = new BufferGroup();
                         model.addBuffer(new Buffer(mesh.mesh().vertices(), 3));
                         model.addBuffer(new Buffer(mesh.mesh().uv(), 2));
+                        synchronized (chunkLoadStates) {
+                            chunkLoadStates.put(new Vector2i(currentChunkPos), new MeshUploaded(model));
+                        }
+                    }
+                    case NeedsReupload mesh -> {
+                        var model = mesh.model();
+                        model.getBuffer(0).updateBuffer(mesh.mesh().vertices());
+                        model.getBuffer(1).updateBuffer(mesh.mesh().uv());
                         synchronized (chunkLoadStates) {
                             chunkLoadStates.put(new Vector2i(currentChunkPos), new MeshUploaded(model));
                         }
@@ -171,11 +191,33 @@ public class World implements Closeable {
         int localZ = Math.floorMod(z, Chunk.CHUNK_WIDTH);
         return chunk.getBlockAt(localX, y, localZ);
     }
+    public void setBlock(int x, int y, int z, BlockType block) {
+        if (y > 256 || y < 0) {
+            return;
+        }
+        var chunk = getChunkAtBlock(x, z);
+        if (chunk == null) {
+            return;
+        }
+
+        int localX = Math.floorMod(x, Chunk.CHUNK_WIDTH);
+        int localZ = Math.floorMod(z, Chunk.CHUNK_WIDTH);
+        synchronized (chunk) {
+            chunk.setBlockAt(localX, y, localZ, block);
+        }
+        synchronized (chunkLoadStates) {
+            if (chunkLoadStates.get(chunk.getPosition()) instanceof MeshUploaded(BufferGroup model)) {
+                chunkLoadStates.put(chunk.getPosition(), new NeedsRemeshing(model));
+            }
+        }
+    }
     @Override
     public void close() {
-        for (var c: chunkLoadStates.values()) {
-            if (c instanceof MeshUploaded(var model)) {
+        for (var e: chunkLoadStates.entrySet()) {
+            var mesh = e.getValue();
+            if (mesh instanceof MeshUploaded(var model)) {
                 model.close();
+                e.setValue(null);
             }
         }
     }
@@ -195,11 +237,4 @@ public class World implements Closeable {
         return entity;
     }
 
-    public void pushAllEntities(Vector3d motion) {
-        for (Entity<?> entity : getEntities()) {
-            if (entity instanceof FallingCollidingEntity<?> fallingEntity) {
-                fallingEntity.getMotion().add(motion);
-            }
-        }
-    }
 }

@@ -13,8 +13,11 @@ public final class BufferGroup implements Closeable {
     private final int vao;
     private final ArrayList<Buffer> buffers = new ArrayList<>();
 
-    public BufferGroup() {
+    public BufferGroup(Buffer ...buffers) {
         vao = glGenVertexArrays();
+        for (Buffer buffer : buffers) {
+            addBuffer(buffer);
+        }
     }
 
     public BindGuard bind() {

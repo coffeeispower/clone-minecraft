@@ -10,6 +10,10 @@ public class AABBd {
         this.min = min;
         this.max = max;
     }
+    public AABBd() {
+        this.min = new Vector3d();
+        this.max = new Vector3d();
+    }
 
     public boolean intersects(AABBd other) {
         return (min.x < other.max.x && max.x > other.min.x) &&

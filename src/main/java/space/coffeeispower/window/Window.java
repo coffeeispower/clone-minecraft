@@ -58,9 +58,16 @@ public final class Window implements AutoCloseable {
     public boolean isKeyPressed(int key) {
         return glfwGetKey(id, key) == GLFW_PRESS;
     }
+    private boolean grabbed;
     public void setGrab(boolean grabbed) {
+        this.grabbed = grabbed;
         glfwSetInputMode(id, GLFW_CURSOR, grabbed ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
     }
+
+    public boolean isGrabbed() {
+        return grabbed;
+    }
+
     public double[] getCursorPos() {
         double[] posX = new double[1];
         double[] posY = new double[1];

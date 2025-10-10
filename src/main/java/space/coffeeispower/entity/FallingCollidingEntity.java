@@ -4,16 +4,14 @@ import org.joml.Vector3d;
 import space.coffeeispower.math.AABBd;
 import space.coffeeispower.world.World;
 
-import java.text.NumberFormat;
-
 public abstract class FallingCollidingEntity<T extends FallingCollidingEntity<T>> extends Entity<T> {
     private final float gravityAcceleration;
     private final Vector3d motion = new Vector3d();
     private boolean isOnGround = false;
 
     // parâmetros físicos
-    private static final double airFriction = 0.98;       // resistência do ar
-    private static final double groundFriction = 0.7;     // fricção com o chão
+    private static final double airFriction = 0.94;       // resistência do ar
+    private static final double groundFriction = 0.85;     // fricção com o chão
 
     protected FallingCollidingEntity(Vector3d position, Vector3d boundingBoxSize, float gravityAcceleration, World world) {
         super(position, boundingBoxSize, world);
@@ -21,16 +19,16 @@ public abstract class FallingCollidingEntity<T extends FallingCollidingEntity<T>
     }
 
     protected FallingCollidingEntity(Vector3d position, Vector3d boundingBoxSize, World world) {
-        this(position, boundingBoxSize, 22, world);
+        this(position, boundingBoxSize, 25.6f, world);
     }
 
     @Override
     public void update(double deltaTime) {
-        System.out.println(getCurrentChunk().getPosition().toString(NumberFormat.getNumberInstance()));
+        if(getCurrentChunk() == null) return;
         // aplicar gravidade
+        motion.mul(airFriction, 1, airFriction);
         motion.y -= gravityAcceleration * deltaTime;
-
-        motion.mul(airFriction);
+        motion.y = Math.min(motion.y, 8);
         isOnGround = false;
 
         Vector3d moveVec = new Vector3d(motion).mul(deltaTime);
@@ -130,7 +128,7 @@ public abstract class FallingCollidingEntity<T extends FallingCollidingEntity<T>
             }
         }
 
-        return Math.abs(allowed) < 1e-6 ? 0.0 : allowed;
+        return allowed;
     }
 
     /** empurra para fora se estiver dentro de blocos */
