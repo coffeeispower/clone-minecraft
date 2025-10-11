@@ -1,0 +1,76 @@
+package space.coffeeispower.minecraft_clone.opengl;
+
+import org.joml.Matrix4d;
+import org.joml.Vector3d;
+import space.coffeeispower.minecraft_clone.window.Window;
+
+public final class Camera {
+    public static final Camera DEFAULT_CAMERA = new Camera(new Vector3d(), new Vector3d(), new Perspective(70));
+    private Vector3d position;
+    private Vector3d rotation;
+    private Mode mode;
+
+    public Camera(Vector3d position, Vector3d rotation, Mode mode) {
+        this.position = position;
+        this.rotation = rotation;
+        this.mode = mode;
+    }
+    public Camera(Mode mode) {
+        this(new Vector3d(), new Vector3d(), mode);
+    }
+    public Camera(Vector3d position, Mode mode) {
+        this(position, new Vector3d(), mode);
+    }
+    public Matrix4d toViewMatrix() {
+        return new Matrix4d().rotateXYZ(new Vector3d(rotation).negate()).translate(new Vector3d(position).negate());
+    }
+
+    public Matrix4d toProjectionMatrix(Window window) {
+        return switch (mode) {
+            case Perspective perspective -> new Matrix4d().perspective(
+                    perspective.fov,
+                    (double) window.width() / (double) window.height(),
+                    0.01,
+                    16*20
+            );
+            case Orthogonal ignored -> //noinspection IntegerDivisionInFloatingPointContext
+                    new Matrix4d().ortho2D(-window.width() / 2, window.width() / 2, -window.height() / 2, window.height() / 2);
+        };
+    }
+
+    public Vector3d position() {
+        return position;
+    }
+
+    public Vector3d rotation() {
+        return rotation;
+    }
+
+    public Mode mode() {
+        return mode;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
+    }
+
+    public void setPosition(Vector3d position) {
+        this.position = position;
+    }
+
+    public void setRotation(Vector3d rotation) {
+        this.rotation = rotation;
+    }
+
+
+    public sealed interface Mode {
+    }
+
+    public record Perspective(double fov) implements Mode {
+    }
+
+    public record Orthogonal() implements Mode {
+    }
+
+
+}
