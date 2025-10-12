@@ -44,7 +44,7 @@ public abstract class FallingCollidingEntity<T extends FallingCollidingEntity<T>
 
     }
     private void moveAndCollide(Vector3d moveVec) {
-        double maxStep = 0.5; // metade de um bloco por passo
+        double maxStep = 0.05; // metade de um bloco por passo
         double remaining = moveVec.length();
         if (remaining == 0.0) return;
 

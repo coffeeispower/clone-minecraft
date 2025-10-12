@@ -1,15 +1,14 @@
 package space.coffeeispower.minecraft_clone;
 
-import org.joml.Matrix4d;
 import org.joml.Vector3d;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import space.coffeeispower.minecraft_clone.entity.player.Player;
 import space.coffeeispower.minecraft_clone.entity.player.PlayerController;
+import space.coffeeispower.minecraft_clone.item.ItemStack;
 import space.coffeeispower.minecraft_clone.item.ItemType;
-import space.coffeeispower.minecraft_clone.item.model.ItemModelRegistry;
-import space.coffeeispower.minecraft_clone.opengl.Camera;
+import space.coffeeispower.minecraft_clone.item.view.ItemModelRegistry;
 import space.coffeeispower.minecraft_clone.resources.InfallibleAutoClose;
 import space.coffeeispower.minecraft_clone.resources.Resources;
 import space.coffeeispower.minecraft_clone.ui.Crosshair;
@@ -44,12 +43,13 @@ public final class Game implements InfallibleAutoClose {
         this.window = Objects.requireNonNull(createWindow.get());
         GL.createCapabilities();
         glEnable(GL_DEPTH_TEST);
-//        glEnable(GL_CULL_FACE);
+        glEnable(GL_CULL_FACE);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         Resources.init();
         worldRenderer = new WorldRenderer(world);
         thePlayer = new PlayerController(world.spawnEntity(new Player(new Vector3d(0, 100, 0), world)), window);
+        thePlayer.getPlayer().getInventory().add(new ItemStack(ItemType.Dirt, (short) 64));
         itemModelRegistry = new ItemModelRegistry();
     }
     /**
@@ -78,9 +78,10 @@ public final class Game implements InfallibleAutoClose {
             worldRenderer.renderEntities(window, camera);
             worldRenderer.renderBlockHighlight(thePlayer, camera);
             worldRenderer.renderBlockBreaking(thePlayer, camera);
-            itemModelRegistry.renderInFirstPersonView(ItemType.Bedrock, new Matrix4d(), (Camera.Perspective) camera.mode(), window);
+//            itemModelRegistry.renderInFirstPersonView(ItemType.DiamondSword, new Matrix4d(), (Camera.Perspective) camera.mode(), window);
 //            itemModelRegistry.renderInInventory(ItemType.Grass, new Matrix4d().translate(0, 0, 0));
-            Crosshair.renderCrosshair(Camera.DEFAULT_UI_CAMERA);
+            thePlayer.renderFirstPersonView(itemModelRegistry, window);
+            Crosshair.renderCrosshair();
 
             window.swapBuffers(); // Enviar tudo o que foi desenhado para a janela e para o ecrã
         }

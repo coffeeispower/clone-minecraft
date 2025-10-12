@@ -1,25 +1,26 @@
 package space.coffeeispower.minecraft_clone.item;
 
 import org.jspecify.annotations.Nullable;
-import space.coffeeispower.minecraft_clone.resources.InfallibleAutoClose;
 import space.coffeeispower.minecraft_clone.world.block.BlockType;
 
-public enum ItemType implements InfallibleAutoClose {
-    Bedrock("Bedrock", BlockType.Bedrock),
-    Dirt("Terra", BlockType.Dirt),
-    Grass("Grama", BlockType.Grass),
-    Stone("Pedra", BlockType.Stone),
-    DiamondSword("Espada de Diamante", null);
+public enum ItemType {
+    Bedrock("Bedrock", BlockType.Bedrock, (short) 64),
+    Dirt("Terra", BlockType.Dirt, (short) 64),
+    Grass("Grama", BlockType.Grass, (short) 64),
+    Stone("Pedra", BlockType.Stone, (short) 64),
+    DiamondSword("Espada de Diamante", null, (short) 1);
 
     private final String displayName;
     private final BlockType associatedBlock; // Se for um bloco colocável
-
+    private final short stackingLimit;
     /**
-     * @param displayName Nome do item
+     * @param displayName   Nome do item
+     * @param stackingLimit O maximo que o item pode juntar num único slot do inventário
      */
-    ItemType(String displayName, @Nullable BlockType associatedBlock) {
+    ItemType(String displayName, @Nullable BlockType associatedBlock, short stackingLimit) {
         this.displayName = displayName;
         this.associatedBlock = associatedBlock;
+        this.stackingLimit = stackingLimit;
     }
 
     public String getDisplayName() {
@@ -30,9 +31,7 @@ public enum ItemType implements InfallibleAutoClose {
         return associatedBlock;
     }
 
-    @Override
-    public void close() {
-
+    public short getStackingLimit() {
+        return stackingLimit;
     }
-
 }

@@ -1,9 +1,8 @@
-package space.coffeeispower.minecraft_clone.item.model;
+package space.coffeeispower.minecraft_clone.item.view;
 
 import org.joml.Matrix4d;
 import space.coffeeispower.minecraft_clone.item.ItemType;
 import space.coffeeispower.minecraft_clone.opengl.Camera;
-import space.coffeeispower.minecraft_clone.opengl.texture.t2d.TextureAtlas;
 import space.coffeeispower.minecraft_clone.window.Window;
 
 import java.io.IOException;

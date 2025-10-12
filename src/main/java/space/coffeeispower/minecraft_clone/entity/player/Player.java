@@ -2,14 +2,18 @@ package space.coffeeispower.minecraft_clone.entity.player;
 
 import org.joml.Vector2d;
 import org.joml.Vector3d;
-import space.coffeeispower.minecraft_clone.entity.EntityRenderer;
-import space.coffeeispower.minecraft_clone.entity.FallingCollidingEntity;
+import space.coffeeispower.minecraft_clone.entity.*;
+import space.coffeeispower.minecraft_clone.inventory.Hotbar;
+import space.coffeeispower.minecraft_clone.inventory.Inventory;
+import space.coffeeispower.minecraft_clone.item.ItemStack;
 import space.coffeeispower.minecraft_clone.opengl.Camera;
 import space.coffeeispower.minecraft_clone.raycast.WorldRaycaster;
 import space.coffeeispower.minecraft_clone.world.World;
 
-public class Player extends FallingCollidingEntity<Player> {
-    Camera eye;
+public class Player extends FallingCollidingEntity<Player> implements HasInventory, HasHotBar, HasHand {
+    private final Camera eye;
+    private final Inventory inventory = new Inventory(9 * 4);
+    private final Hotbar hotbar = new Hotbar(inventory, 0, (byte) 9);
     public Player(Vector3d position, World world) {
         super(position, new Vector3d(0.7, 1.8, 0.7), world);
         eye = new Camera(getEyePosition(), new Camera.Perspective(70));
@@ -94,5 +98,30 @@ public class Player extends FallingCollidingEntity<Player> {
 
     public WorldRaycaster.BlockRaycastResult raycast(double maxDistance) {
         return WorldRaycaster.findClosestBlock(this.getEyePosition(), this.getLookDirection(), this.getWorld(), maxDistance);
+    }
+
+    @Override
+    public Hotbar getHotbar() {
+        return hotbar;
+    }
+
+    @Override
+    public ItemStack increaseItemInHand(short amount) {
+        return inventory.increaseItem(hotbar.getPositionInInventory(), amount);
+    }
+
+    @Override
+    public ItemStack decreaseItemInHand(short amount) {
+        return inventory.decreaseItem(hotbar.getPositionInInventory(), amount);
+    }
+
+    @Override
+    public ItemStack setItemAmountInHand(short amount) {
+        return inventory.setItemAmount(hotbar.getPositionInInventory(), amount);
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return inventory;
     }
 }

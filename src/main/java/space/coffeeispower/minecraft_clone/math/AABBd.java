@@ -2,6 +2,8 @@ package space.coffeeispower.minecraft_clone.math;
 
 import org.joml.Vector3d;
 
+import java.text.NumberFormat;
+
 public class AABBd {
     public final Vector3d min;
     public final Vector3d max;
@@ -27,5 +29,13 @@ public class AABBd {
 
     public AABBd offset(double x, double y, double z) {
         return new AABBd(new Vector3d(min).add(x, y, z), new Vector3d(max).add(x, y, z));
+    }
+
+    @Override
+    public String toString() {
+        return "AABBd{" +
+                "min=" + min.toString(NumberFormat.getNumberInstance()) +
+                ", max=" + max.toString(NumberFormat.getNumberInstance()) +
+                '}';
     }
 }

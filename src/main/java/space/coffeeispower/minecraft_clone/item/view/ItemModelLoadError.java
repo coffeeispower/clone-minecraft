@@ -1,4 +1,4 @@
-package space.coffeeispower.minecraft_clone.item.model;
+package space.coffeeispower.minecraft_clone.item.view;
 
 import space.coffeeispower.minecraft_clone.item.ItemType;
 
