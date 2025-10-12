@@ -1,18 +1,21 @@
 package space.coffeeispower.minecraft_clone.entity.player;
 
 import org.joml.Vector2d;
+import org.joml.Vector3i;
 import space.coffeeispower.minecraft_clone.raycast.WorldRaycaster;
 import space.coffeeispower.minecraft_clone.window.Window;
+import space.coffeeispower.minecraft_clone.world.block.BlockType;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class PlayerController {
 
+    private static final float SENSITIVITY = 0.002f;
     private final Player player;
     private final Window window;
     private double lastMouseX, lastMouseY;
-    private static final float SENSITIVITY = 0.002f;
     private WorldRaycaster.BlockRaycastResult hoveredBlock;
+
     public PlayerController(Player player, Window window) {
         this.player = player;
         this.window = window;
@@ -22,31 +25,35 @@ public class PlayerController {
     public Player getPlayer() {
         return player;
     }
+
     public void update(double deltaTime) {
-        if(!window.isGrabbed()) return;
-        var newHoveredBlock = getPlayer().raycast(3.6);
+        if (!window.isGrabbed()) return;
+        hoveredBlock = getPlayer().raycast(3.6);
         var world = player.getWorld();
-        if (!window.isMouseDown(0)) {
-            if (hoveredBlock != null && world.isBlockBeingBroken(hoveredBlock.blockPosition())) {
-                world.interruptBlockBreaking(hoveredBlock.blockPosition());
+        if (window.isMouseDown(0)) {
+            if (hoveredBlock != null && !player.isBreakingBlock(hoveredBlock.blockPosition())) {
+                player.startBreakingBlock(hoveredBlock.blockPosition());
+            } else if (hoveredBlock == null) {
+                player.stopBreakingBlock();
             }
-        } else if (newHoveredBlock != null) {
-            if (hoveredBlock != null && !newHoveredBlock.blockPosition().equals(hoveredBlock.blockPosition()) && world.isBlockBeingBroken(hoveredBlock.blockPosition())) {
-                world.interruptBlockBreaking(hoveredBlock.blockPosition());
-                world.startBreakingBlock(player, newHoveredBlock.blockPosition());
-            } else if (!world.isBlockBeingBroken(newHoveredBlock.blockPosition())) {
-                world.startBreakingBlock(player, newHoveredBlock.blockPosition());
-            }
-        } else if (hoveredBlock != null) {
-            world.interruptBlockBreaking(hoveredBlock.blockPosition());
+        } else {
+            player.stopBreakingBlock();
         }
-        hoveredBlock = newHoveredBlock;
         handleWalking(deltaTime);
         handleMouseTurning();
     }
 
+    public BreakingBlock getBreakingBlock() {
+        if (hoveredBlock == null || !player.isBreakingBlock(hoveredBlock.blockPosition())) {
+            return null;
+        }
+        return new BreakingBlock(player.getWorld().getBlock(hoveredBlock.blockPosition()),
+                hoveredBlock.blockPosition(),
+                player.getWorld().getBreakingProgress(hoveredBlock.blockPosition()));
+    }
+
     private void handleWalking(double deltaTime) {
-        if (window.isKeyPressed(GLFW_KEY_SPACE) /*&& player.canJump()*/)
+        if (window.isKeyPressed(GLFW_KEY_SPACE) && player.canJump())
             player.getMotion().add(0, 8, 0).mul(1.01, 1.0, 1.01);
         var direction = new Vector2d();
         if (window.isKeyPressed(GLFW_KEY_W))
@@ -78,5 +85,8 @@ public class PlayerController {
 
     public WorldRaycaster.BlockRaycastResult getHoveredBlock() {
         return hoveredBlock;
+    }
+
+    public record BreakingBlock(BlockType block, Vector3i position, double progress) {
     }
 }

@@ -1,10 +1,12 @@
 package space.coffeeispower.minecraft_clone.opengl;
 
+import space.coffeeispower.minecraft_clone.resources.InfallibleAutoClose;
+
 import java.util.function.Consumer;
 
 import static org.lwjgl.opengl.GL11.glGetIntegerv;
 
-public final class BindGuard implements AutoCloseable {
+public final class BindGuard implements InfallibleAutoClose {
     private final int oldId;
     private final int newId;
     private final Consumer<Integer> bind;

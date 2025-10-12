@@ -9,10 +9,10 @@ import java.util.stream.Stream;
 
 public enum BlockType {
     Air(null, false),
-    Bedrock(new BlockModel("/textures/bedrock/bedrock.png")),
-    Dirt(new BlockModel("/textures/dirt/dirt.png")),
-    Grass(new BlockModel("/textures/grass/top.png", "/textures/grass/bottom.png", "/textures/grass/side.png")),
-    Stone(new BlockModel("/textures/stone/stone.png")),
+    Bedrock(new BlockModel("/textures/blocks/bedrock/bedrock.png")),
+    Dirt(new BlockModel("/textures/blocks/dirt/dirt.png")),
+    Grass(new BlockModel("/textures/blocks/grass/top.png", "/textures/blocks/grass/bottom.png", "/textures/blocks/grass/side.png")),
+    Stone(new BlockModel("/textures/blocks/stone/stone.png")),
     ;
     @Nullable
     private final BlockModel model;

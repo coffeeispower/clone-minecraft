@@ -1,5 +1,6 @@
 package space.coffeeispower.minecraft_clone.opengl.texture;
 
+import org.joml.Vector4i;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 
@@ -11,7 +12,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 
-public record ImageData(ByteBuffer data, int width, int height) {
+public record ImageData(ByteBuffer data, int width, int height, boolean isStb) implements AutoCloseable {
     public static ImageData loadImageDataFromResource(String resourcePath) throws IOException {
         ImageData data;
         // Carrega recurso como InputStream
@@ -27,7 +28,7 @@ public record ImageData(ByteBuffer data, int width, int height) {
             STBImage.stbi_set_flip_vertically_on_load(true);
             ByteBuffer imageData = STBImage.stbi_load_from_memory(imageBuffer, width, height, channels, 4);
             if (imageData == null) throw new RuntimeException("Falha ao carregar textura: " + STBImage.stbi_failure_reason());
-            data = new ImageData(imageData, width.get(0), height.get(0));
+            data = new ImageData(imageData, width.get(0), height.get(0), true);
         }
         return data;
     }
@@ -49,5 +50,27 @@ public record ImageData(ByteBuffer data, int width, int height) {
             buffer.flip();
             return buffer;
         }
+    }
+
+    public Vector4i getPixelColor(int x, int y) {
+        if (x < 0 || x >= width || y < 0 || y >= height)
+            return new Vector4i();
+
+        // Cada pixel = 4 bytes (R, G, B, A)
+        int index = (y * width + x) * 4;
+
+        // ler bytes e converter para 0..1
+        int r = (data.get(index) & 0xFF);
+        int g = (data.get(index + 1) & 0xFF);
+        int b = (data.get(index + 2) & 0xFF);
+        int a = (data.get(index + 3) & 0xFF);
+
+        return new Vector4i(r, g, b, a);
+    }
+
+    @Override
+    public void close() {
+        if (isStb)
+            STBImage.stbi_image_free(data);
     }
 }

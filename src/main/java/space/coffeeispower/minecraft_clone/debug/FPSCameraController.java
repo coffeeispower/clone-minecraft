@@ -1,4 +1,4 @@
-package space.coffeeispower.minecraft_clone;
+package space.coffeeispower.minecraft_clone.debug;
 
 import org.joml.Vector3d;
 import space.coffeeispower.minecraft_clone.opengl.Camera;

@@ -1,10 +1,12 @@
 package space.coffeeispower.minecraft_clone.opengl;
 
+import space.coffeeispower.minecraft_clone.resources.InfallibleAutoClose;
+
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_BINDING_2D;
 import static org.lwjgl.opengl.GL11.glGetIntegerv;
 import static org.lwjgl.opengl.GL13.*;
 
-public final class TextureBindGuard implements AutoCloseable {
+public final class TextureBindGuard implements InfallibleAutoClose {
     private final int oldId;
     private final int newId;
     private final byte oldSlot;

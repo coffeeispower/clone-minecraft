@@ -1,5 +1,7 @@
 package space.coffeeispower.minecraft_clone.window;
 
+import space.coffeeispower.minecraft_clone.resources.InfallibleAutoClose;
+
 import java.util.HashMap;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -9,7 +11,7 @@ import static org.lwjgl.glfw.GLFW.*;
  * <p>Representa uma janela no sistema operativo</p>
  * <p>Ao ser criado um objeto desta classe, uma nova janela é criada no sistema operativo com um contexto OpenGL.</p>
  */
-public final class Window implements AutoCloseable {
+public final class Window implements InfallibleAutoClose {
     long id;
 
     public Window() {
@@ -95,6 +97,7 @@ public final class Window implements AutoCloseable {
             fullscreen = true;
         } else {
             glfwSetWindowMonitor(id, 0, 0, 0, windowedWidth, windowedHeight, GLFW_DONT_CARE);
+            fullscreen = false;
         }
     }
 

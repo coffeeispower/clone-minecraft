@@ -1,7 +1,10 @@
 package space.coffeeispower.minecraft_clone.world.block;
 
-import space.coffeeispower.minecraft_clone.opengl.texture.TextureAtlas;
+import space.coffeeispower.minecraft_clone.opengl.model.Buffer;
+import space.coffeeispower.minecraft_clone.opengl.model.BufferGroup;
+import space.coffeeispower.minecraft_clone.resources.Resources;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record BlockModel(String topPath, String bottomPath, String frontPath, String rightPath, String leftPath,
@@ -20,7 +23,6 @@ public record BlockModel(String topPath, String bottomPath, String frontPath, St
      *
      * @param vertices lista onde os vértices serão adicionados
      * @param uvs      lista onde as coordenadas UV serão adicionadas
-     * @param atlas    o atlas de texturas (para obter coordenadas UV)
      * @param top      se deve gerar a face de cima
      * @param bottom   se deve gerar a face de baixo
      * @param left     se deve gerar a face esquerda
@@ -28,13 +30,13 @@ public record BlockModel(String topPath, String bottomPath, String frontPath, St
      * @param front    se deve gerar a face da frente
      * @param back     se deve gerar a face de trás
      */
-    public void appendFaces(List<Double> vertices, List<Double> uvs, TextureAtlas atlas,
+    public void appendFaces(List<Double> vertices, List<Double> uvs,
                             boolean top, boolean bottom, boolean left, boolean right, boolean front, boolean back,
-                            int x,
-                            int y,
-                            int z
+                            double x,
+                            double y,
+                            double z
     ) {
-
+        var atlas = Resources.INSTANCE.blockTextureAtlas;
         if (front) {
             var uv = atlas.getUV(frontPath);
             appendFace(vertices, uvs,
@@ -182,5 +184,14 @@ public record BlockModel(String topPath, String bottomPath, String frontPath, St
 
         for (double d : srcUv)
             uvs.add(d);
+    }
+
+    public BufferGroup createCubeModel() {
+        var verticesList = new ArrayList<Double>(3 * 2 * 6 * 3);
+        var uvsList = new ArrayList<Double>(3 * 2 * 6 * 2);
+        appendFaces(verticesList, uvsList, true, true, true, true, true, true, -0.5, -0.5, -0.5);
+        var vertices = verticesList.stream().mapToDouble((d) -> d).toArray();
+        var uvs = uvsList.stream().mapToDouble((d) -> d).toArray();
+        return new BufferGroup(new Buffer(vertices, 3), new Buffer(uvs, 2));
     }
 }

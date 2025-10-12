@@ -1,19 +1,34 @@
-package space.coffeeispower.minecraft_clone.opengl.texture;
+package space.coffeeispower.minecraft_clone.opengl.texture.t2d;
 
+import org.jetbrains.annotations.NotNull;
 import org.lwjgl.BufferUtils;
+import space.coffeeispower.minecraft_clone.opengl.texture.ImageData;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-public final class TextureAtlas implements Closeable {
-    private final Texture texture;
+import static space.coffeeispower.minecraft_clone.opengl.texture.t2d.ImageTexture.create2DTexture;
+
+public final class TextureAtlas implements Texture2D {
+
+    private final int id;
+    private final int width;
+    private final int height;
     private final Map<String, UVCoords> uvMap = new HashMap<>();
 
     public TextureAtlas(String ...resourcePaths) throws IOException {
-        Map<String, ImageData> images = new HashMap<>();
+        var data = generateAtlasImage(resourcePaths, uvMap);
+        this.width = data.width();
+        this.height = data.height();
+        this.id = create2DTexture(data);
+    }
+
+    @NotNull
+    private static ImageData generateAtlasImage(String[] resourcePaths, Map<String, UVCoords> uvMap) throws IOException {
+        Map<String, ImageData> images = new LinkedHashMap<>();
 
         int totalWidth = 0;
         int maxHeight = 0;
@@ -48,9 +63,7 @@ public final class TextureAtlas implements Closeable {
 
         atlasBuffer.flip();
 
-        // Cria ImageData final e Texture
-        ImageData atlasData = new ImageData(atlasBuffer, totalWidth, maxHeight);
-        this.texture = new Texture(atlasData);
+        return new ImageData(atlasBuffer, totalWidth, maxHeight, false);
     }
 
     private static void copyImageDataToBuffer(ImageData srcImg, ByteBuffer target, int offsetX, int targetWidth) {
@@ -66,9 +79,6 @@ public final class TextureAtlas implements Closeable {
         }
     }
 
-    public Texture texture() {
-        return texture;
-    }
 
     public UVCoords getUV(String path) {
         return uvMap.get(path);
@@ -97,7 +107,17 @@ public final class TextureAtlas implements Closeable {
     public record UVCoords(float left, float bottom, float right, float top) {}
 
     @Override
-    public void close() {
-        texture().close();
+    public int getTextureId() {
+        return id;
+    }
+
+    @Override
+    public int getHeight() {
+        return height;
+    }
+
+    @Override
+    public int getWidth() {
+        return width;
     }
 }

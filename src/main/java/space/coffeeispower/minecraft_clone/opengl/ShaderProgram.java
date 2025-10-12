@@ -1,6 +1,7 @@
 package space.coffeeispower.minecraft_clone.opengl;
 
 import org.joml.Matrix4d;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL30;
@@ -97,6 +98,12 @@ public final class ShaderProgram implements Closeable {
         glDeleteProgram(programId);
     }
 
+    public void setUniform(String name, Vector2i v) {
+        try (var ignored = bind()) {
+            int loc = glGetUniformLocation(programId, name);
+            glUniform2f(loc, v.x, v.y);
+        }
+    }
     public void setUniform(String name, Vector3f v) {
         try (var ignored = bind()) {
             int loc = glGetUniformLocation(programId, name);

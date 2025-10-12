@@ -3,9 +3,12 @@ package space.coffeeispower.minecraft_clone.entity;
 import org.joml.Vector2d;
 import org.joml.Vector2i;
 import org.joml.Vector3d;
+import org.joml.Vector3i;
 import org.jspecify.annotations.Nullable;
 import space.coffeeispower.minecraft_clone.world.World;
 import space.coffeeispower.minecraft_clone.world.chunk.Chunk;
+
+import java.util.Objects;
 
 
 public abstract class Entity<T extends Entity<T>> {
@@ -63,5 +66,26 @@ public abstract class Entity<T extends Entity<T>> {
 
     public World getWorld() {
         return world;
+    }
+
+    @Nullable
+    private Vector3i currentBreakingBlockPosition;
+
+    public void startBreakingBlock(Vector3i position) {
+        if (currentBreakingBlockPosition != null) {
+            stopBreakingBlock();
+        }
+        world.startBreakingBlock(this, position);
+        currentBreakingBlockPosition = position;
+    }
+
+    public boolean isBreakingBlock(Vector3i position) {
+        return Objects.equals(currentBreakingBlockPosition, position) && world.isBlockBeingBroken(position, this);
+    }
+
+    public void stopBreakingBlock() {
+        if (currentBreakingBlockPosition == null) return;
+        world.interruptBlockBreaking(currentBreakingBlockPosition, this);
+        currentBreakingBlockPosition = null;
     }
 }

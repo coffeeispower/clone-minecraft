@@ -1,6 +1,5 @@
 package space.coffeeispower.minecraft_clone.world.chunk;
 
-import space.coffeeispower.minecraft_clone.opengl.texture.TextureAtlas;
 import space.coffeeispower.minecraft_clone.world.block.BlockType;
 
 import java.util.ArrayList;
@@ -8,7 +7,8 @@ import java.util.List;
 
 public class ChunkMeshGenerator {
     public record ChunkMesh(double[] vertices, double[] uv) {}
-    public static ChunkMesh generateMeshForChunk(Chunk chunk, TextureAtlas atlas) {
+
+    public static ChunkMesh generateMeshForChunk(Chunk chunk) {
         List<Double> vertices = new ArrayList<>();
         List<Double> uvs = new ArrayList<>();
 
@@ -31,8 +31,7 @@ public class ChunkMeshGenerator {
                         continue; // bloco completamente oculto
 
 
-                    type.model().appendFaces(vertices, uvs, atlas,
-                            top, bottom, left, right, front, back, x, y, z);
+                    type.model().appendFaces(vertices, uvs, top, bottom, left, right, front, back, x, y, z);
 
                 }
             }

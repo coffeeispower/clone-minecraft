@@ -30,7 +30,6 @@ public abstract class FallingCollidingEntity<T extends FallingCollidingEntity<T>
         motion.y -= gravityAcceleration * deltaTime;
         motion.y = Math.min(motion.y, 8);
         isOnGround = false;
-        System.out.println(getPosition().y);
         Vector3d moveVec = new Vector3d(motion).mul(deltaTime);
 
         resolvePenetration();
