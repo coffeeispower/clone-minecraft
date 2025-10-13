@@ -30,9 +30,7 @@ public class WorldRenderer implements InfallibleAutoClose {
         var breakingStagesPaths = IntStream
                 .range(0, TOTAL_BREAKING_STAGES)
                 .mapToObj(WorldRenderer::getTexturePathForBreakingStage).toArray(String[]::new);
-        for (String breakingStagesPath : breakingStagesPaths) {
-            System.out.println(breakingStagesPath);
-        }
+
         breakingStagesAtlas = new TextureAtlas(breakingStagesPaths);
     }
 

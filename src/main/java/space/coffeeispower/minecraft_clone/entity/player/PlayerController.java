@@ -53,6 +53,10 @@ public class PlayerController {
             inventoryIsOpen = !inventoryIsOpen;
             window.setGrab(!inventoryIsOpen);
         });
+        window.onKeyPress(GLFW_KEY_ESCAPE, () -> {
+            inventoryIsOpen = false;
+            window.setGrab(true);
+        });
     }
 
     public Player getPlayer() {
@@ -63,21 +67,27 @@ public class PlayerController {
 
     public void update(double deltaTime, Window window) {
         updateInputState(window);
-        if (!window.isGrabbed()) return;
+        if (window.isGrabbed()) {
+            handleWalking(deltaTime);
+            handleMouseTurning();
+            hitOnLeftClick();
+            placeBlocksOnRightClick();
+            changeHotbarSlotOnNumberKeypresses(window);
+            changeHotbarSlotWithMouseWheel(window);
+            breakBlockOnRightClick(window);
+        }
         itemSwapAnimationController.update(deltaTime);
         hoveredBlock = getPlayer().raycast(3.6);
-        hitOnLeftClick();
-        breakBlockOnRightClick(window);
         swingWhileBreaking();
-        placeBlocksOnRightClick();
-        changeHotbarSlotWithMouseWheel(window);
-        changeHotbarSlotOnNumberKeypresses(window);
         triggerSwapAnimationIfItemChanged();
         // Atualizar o swing
         updateSwing(deltaTime);
-
-        handleWalking(deltaTime);
-        handleMouseTurning();
+        if (!inventoryIsOpen) {
+            var cursorItem = playerInventoryUI.consumeMovingItem();
+            if (cursorItem != null) {
+                player.getInventory().add(cursorItem);
+            }
+        }
     }
 
     private void hitOnLeftClick() {
@@ -144,6 +154,7 @@ public class PlayerController {
         var lastItemType = lastItem == null ? null : lastItem.type();
         var newItemType = itemInHand == null ? null : itemInHand.type();
         if (!Objects.equals(lastItemType, newItemType)) {
+            System.out.println("swap");
             itemSwapAnimationController.triggerSwap(itemInHand, lastItem);
         }
         lastItem = player.getItemInHand();
@@ -267,7 +278,7 @@ public class PlayerController {
         }
         hotbarUi.render(itemModelRegistry);
         if (inventoryIsOpen) {
-            playerInventoryUI.render(itemModelRegistry);
+            playerInventoryUI.render(itemModelRegistry, justClicked);
         }
     }
 

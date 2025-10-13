@@ -1,8 +1,10 @@
 package space.coffeeispower.minecraft_clone.item.view;
 
 import org.joml.Matrix4d;
+import space.coffeeispower.minecraft_clone.item.ItemStack;
 import space.coffeeispower.minecraft_clone.item.ItemType;
 import space.coffeeispower.minecraft_clone.opengl.Camera;
+import space.coffeeispower.minecraft_clone.ui.NumberRenderer;
 import space.coffeeispower.minecraft_clone.window.Window;
 
 import java.io.IOException;
@@ -43,7 +45,8 @@ public class ItemModelRegistry {
         itemModels.get(item).renderInFirstPersonView(transform, perspective, window);
     }
 
-    public void renderInInventory(ItemType item, Matrix4d transform) {
-        itemModels.get(item).renderAsUi(transform);
+    public void renderInInventory(ItemStack item, double x, double y) {
+        itemModels.get(item.type()).renderAsUi(new Matrix4d().translate(x, y, 0));
+        NumberRenderer.renderNumber(item.amount(), x + 55 - 16 * 2 - 8, y - 55 + 16 * 2 + 8);
     }
 }

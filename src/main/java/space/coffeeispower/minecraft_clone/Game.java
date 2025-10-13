@@ -83,7 +83,6 @@ public final class Game implements InfallibleAutoClose {
             Crosshair.renderCrosshair();
 
             thePlayer.renderFirstPersonView(itemModelRegistry, window);
-
             window.swapBuffers(); // Enviar tudo o que foi desenhado para a janela e para o ecrã
         }
     }

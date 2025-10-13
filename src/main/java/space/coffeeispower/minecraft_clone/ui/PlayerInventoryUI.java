@@ -1,8 +1,8 @@
 package space.coffeeispower.minecraft_clone.ui;
 
-import org.joml.Matrix4d;
 import org.joml.Vector4i;
 import space.coffeeispower.minecraft_clone.entity.player.Player;
+import space.coffeeispower.minecraft_clone.item.ItemStack;
 import space.coffeeispower.minecraft_clone.item.view.ItemModelRegistry;
 import space.coffeeispower.minecraft_clone.opengl.Draw;
 import space.coffeeispower.minecraft_clone.window.Window;
@@ -11,13 +11,19 @@ public class PlayerInventoryUI {
 
     private final Player player;
     private final Window window;
-
+    private ItemStack movingItemStack;
     public PlayerInventoryUI(Player player, Window window) {
         this.player = player;
         this.window = window;
     }
 
-    public void render(ItemModelRegistry itemModelRegistry) {
+    public ItemStack consumeMovingItem() {
+        var item = movingItemStack;
+        movingItemStack = null;
+        return item;
+    }
+
+    public void render(ItemModelRegistry itemModelRegistry, boolean justLeftClicked) {
         var inventory = player.getInventory();
         if (inventory == null) return;
 
@@ -38,6 +44,7 @@ public class PlayerInventoryUI {
         var bgWidth = totalWidth + bgPadding * 2;
         var bgHeight = totalHeight + bgPadding * 2;
         Draw.rectangle(new Vector4i(120, 120, 120, 255), -bgWidth / 2., bgHeight / 2., bgWidth, bgHeight);
+        var cursorPos = window.getCursorPos();
         int slotIteration = 0;
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
@@ -54,7 +61,7 @@ public class PlayerInventoryUI {
 
                 // Faz a hotbar aparecer na ultima linha
                 if (slotIteration < 9) {
-                    actualSlot += 9;
+                    actualSlot += 9 * 3;
                 } else if (slotIteration >= 9 * 3) {
                     actualSlot -= 9 * 3;
                 }
@@ -62,17 +69,34 @@ public class PlayerInventoryUI {
                 if (item != null) {
                     // Renderiza o item no centro do quadrado
                     itemModelRegistry.renderInInventory(
-                            item.type(),
-                            new Matrix4d().translate(
-                                    x + slotSize / 2.0,
-                                    y - slotSize / 2.0,
-                                    0
-                            )
+                            item,
+                            x + slotSize / 2.0,
+                            y - slotSize / 2.0
                     );
+                }
+                var hover =
+                        cursorPos[0] > x + window.width() / 2 && cursorPos[0] < x + window.width() / 2 + slotSize &&
+                                window.height() - cursorPos[1] > y + window.height() / 2 - slotSize && window.height() - cursorPos[1] < y + window.height() / 2;
+                if (hover) {
+                    Draw.rectangle(new Vector4i(255, 255, 255, 80), x, y, slotSize, slotSize);
+                    if (justLeftClicked) {
+                        var tmp = inventory.getItem(actualSlot);
+                        inventory.setItem(actualSlot, movingItemStack);
+                        movingItemStack = tmp;
+                    }
                 }
 
                 slotIteration++;
             }
+        }
+        if (movingItemStack != null) {
+            // Renderiza o item no centro do quadrado
+            itemModelRegistry.renderInInventory(
+                    movingItemStack,
+                    cursorPos[0] - window.width() / 2,
+                    window.height() / 2 - cursorPos[1]
+
+            );
         }
     }
 }

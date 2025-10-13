@@ -1,6 +1,5 @@
 package space.coffeeispower.minecraft_clone.ui;
 
-import org.joml.Matrix4d;
 import org.joml.Vector4i;
 import space.coffeeispower.minecraft_clone.entity.HasHotBar;
 import space.coffeeispower.minecraft_clone.item.view.ItemModelRegistry;
@@ -35,7 +34,7 @@ public class HotbarUI {
             positionXCursor += slotSize;
             var item = hotbar.getItemAtSlot(i);
             if (item != null) {
-                itemModelRegistry.renderInInventory(item.type(), new Matrix4d().translate(hotbarPositionX + positionXCursor - (slotSize / 2.), hotbarPositionY - (slotSize / 2.), 0));
+                itemModelRegistry.renderInInventory(item, hotbarPositionX + positionXCursor - (slotSize / 2.), hotbarPositionY - (slotSize / 2.));
             }
 
             var hasNext = i + 1 < slotCount;
