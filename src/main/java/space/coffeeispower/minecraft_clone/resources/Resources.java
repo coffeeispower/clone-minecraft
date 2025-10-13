@@ -148,6 +148,14 @@ public class Resources {
                     0, 0
             }, 2)
     );
+    public final BufferGroup rectangleBorderModel = new BufferGroup(
+            new Buffer(new double[]{
+                    0, 0,
+                    1, 0,
+                    1, -1,
+                    0, -1
+            }, 2)
+    );
     public final Texture2D crosshairTexture = new ImageTexture("/textures/crosshair.png");
     public final ShaderProgram colorShader = new ShaderProgram("/shaders/simpleColor/vertex.glsl", "/shaders/simpleColor/fragment.glsl");
     public final ShaderProgram textureShader = new ShaderProgram("/shaders/texturesModel/vertex.glsl", "/shaders/texturesModel/fragment.glsl");

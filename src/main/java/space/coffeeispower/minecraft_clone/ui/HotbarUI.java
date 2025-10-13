@@ -28,7 +28,10 @@ public class HotbarUI {
         var i = 0;
 
         for (; i < slotCount; i++) {
-            Draw.rectangle(hotbar.getSelectedPosition() == i ? new Vector4i(200, 200, 200, 200) : new Vector4i(0, 0, 0, 60), hotbarPositionX + positionXCursor, hotbarPositionY, slotSize, slotSize);
+            Draw.rectangle(new Vector4i(0, 0, 0, 60), hotbarPositionX + positionXCursor, hotbarPositionY, slotSize, slotSize);
+            if (hotbar.getSelectedPosition() == i) {
+                Draw.rectangleBorder(new Vector4i(255, 255, 255, 255), hotbarPositionX + positionXCursor, hotbarPositionY, slotSize, slotSize, 4);
+            }
             positionXCursor += slotSize;
             var item = hotbar.getItemAtSlot(i);
             if (item != null) {

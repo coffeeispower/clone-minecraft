@@ -80,8 +80,9 @@ public final class Game implements InfallibleAutoClose {
             worldRenderer.renderEntities(window, camera);
             worldRenderer.renderBlockHighlight(thePlayer, camera);
             worldRenderer.renderBlockBreaking(thePlayer, camera);
-            thePlayer.renderFirstPersonView(itemModelRegistry, window);
             Crosshair.renderCrosshair();
+
+            thePlayer.renderFirstPersonView(itemModelRegistry, window);
 
             window.swapBuffers(); // Enviar tudo o que foi desenhado para a janela e para o ecrã
         }

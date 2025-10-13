@@ -10,6 +10,7 @@ import space.coffeeispower.minecraft_clone.math.AABBd;
 import space.coffeeispower.minecraft_clone.opengl.Camera;
 import space.coffeeispower.minecraft_clone.raycast.WorldRaycaster;
 import space.coffeeispower.minecraft_clone.ui.HotbarUI;
+import space.coffeeispower.minecraft_clone.ui.PlayerInventoryUI;
 import space.coffeeispower.minecraft_clone.window.Window;
 import space.coffeeispower.minecraft_clone.world.block.BlockType;
 
@@ -37,11 +38,21 @@ public class PlayerController {
     private boolean justClicked;
     private boolean justRightClicked;
     private HotbarUI hotbarUi;
+    private PlayerInventoryUI playerInventoryUI;
+    private boolean inventoryIsOpen;
+    private double mouseDx;
+    private double mouseDy;
+
     public PlayerController(Player player, Window window) {
         this.player = player;
         this.window = window;
         this.hotbarUi = new HotbarUI(player, window);
+        this.playerInventoryUI = new PlayerInventoryUI(player, window);
         window.setGrab(true);
+        window.onKeyPress(GLFW_KEY_E, () -> {
+            inventoryIsOpen = !inventoryIsOpen;
+            window.setGrab(!inventoryIsOpen);
+        });
     }
 
     public Player getPlayer() {
@@ -51,8 +62,8 @@ public class PlayerController {
     private ItemStack lastItem;
 
     public void update(double deltaTime, Window window) {
-        if (!window.isGrabbed()) return;
         updateInputState(window);
+        if (!window.isGrabbed()) return;
         itemSwapAnimationController.update(deltaTime);
         hoveredBlock = getPlayer().raycast(3.6);
         hitOnLeftClick();
@@ -89,6 +100,12 @@ public class PlayerController {
             lastRightClickRepeat = now;
             repeatRightClick = true;
         }
+        double[] pos = window.getCursorPos();
+        mouseDx = pos[0] - lastMouseX;
+        mouseDy = pos[1] - lastMouseY;
+
+        lastMouseX = pos[0];
+        lastMouseY = pos[1];
     }
 
     private void placeBlocksOnRightClick() {
@@ -199,16 +216,11 @@ public class PlayerController {
     }
 
     private void handleMouseTurning() {
-        double[] pos = window.getCursorPos();
-        double dx = pos[0] - lastMouseX;
-        double dy = pos[1] - lastMouseY;
 
-        lastMouseX = pos[0];
-        lastMouseY = pos[1];
 
         Vector2d rotation = player.getRotation();
-        rotation.x += -dy * SENSITIVITY;
-        rotation.y += -dx * SENSITIVITY;
+        rotation.x += -mouseDy * SENSITIVITY;
+        rotation.y += -mouseDx * SENSITIVITY;
         rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotation.x));
     }
 
@@ -254,7 +266,9 @@ public class PlayerController {
             );
         }
         hotbarUi.render(itemModelRegistry);
-
+        if (inventoryIsOpen) {
+            playerInventoryUI.render(itemModelRegistry);
+        }
     }
 
 

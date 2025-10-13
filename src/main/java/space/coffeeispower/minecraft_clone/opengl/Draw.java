@@ -26,6 +26,30 @@ public final class Draw {
         }
     }
 
+    public static void rectangleBorder(Vector4i color, double x, double y, double width, double height, float lineWidth) {
+        var camera = Camera.DEFAULT_UI_CAMERA;
+        var shader = Resources.INSTANCE.colorShader;
+        var transform = new Matrix4d();
+        transform.translate(x, y, 0);
+        transform.scaleXY(width, height);
+        shader.setUniform("color", new Vector4f(color).div(255));
+        shader.setUniform("viewMatrix", camera.toViewMatrix());
+        shader.setUniform("projectionMatrix", camera.toProjectionMatrix());
+        shader.setUniform("transformMatrix", transform);
+
+        GL11.glDisable(GL11.GL_DEPTH);
+        GL11.glDepthMask(false);
+        var bg = Resources.INSTANCE.rectangleBorderModel;
+        try (var ignored = bg.bind()) {
+            try (var ignored2 = shader.bind()) {
+                GL11.glLineWidth(lineWidth);
+                GL30.glDrawArrays(GL11.GL_LINE_LOOP, 0, bg.verticesCount());
+            }
+        }
+        GL11.glEnable(GL11.GL_DEPTH);
+        GL11.glDepthMask(true);
+    }
+
     public static void rectangle(Vector4i color, double x, double y, double width, double height) {
         var transform = new Matrix4d();
         transform.translate(x, y, 0);
