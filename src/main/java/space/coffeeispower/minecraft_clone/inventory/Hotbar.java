@@ -47,6 +47,16 @@ public class Hotbar {
         return inventory.getItem(getPositionInInventory());
     }
 
+    public ItemStack getItemAtSlot(int slot) {
+        if (slot > slots) {
+            throw new IllegalArgumentException("A hotbar apenas tem " + slots + "slots, mas tentou selecionar o slot " + slot);
+        }
+        if (slot < 0) {
+            throw new RuntimeException("Não existe slots negativos, mas tentou usar o slot da hotbar " + slot);
+        }
+        return inventory.getItem(start + slot);
+    }
+
     public ItemStack setSelectedItem(ItemStack item) {
         inventory.setItem(getPositionInInventory(), item);
         return item;

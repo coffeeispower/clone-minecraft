@@ -2,6 +2,8 @@ package space.coffeeispower.minecraft_clone.opengl;
 
 import org.joml.Matrix4d;
 import org.joml.Vector2d;
+import org.joml.Vector4f;
+import org.joml.Vector4i;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
 import space.coffeeispower.minecraft_clone.opengl.model.BufferGroup;
@@ -24,13 +26,25 @@ public final class Draw {
         }
     }
 
+    public static void rectangle(Vector4i color, double x, double y, double width, double height) {
+        var transform = new Matrix4d();
+        transform.translate(x, y, 0);
+        transform.scaleXY(width, height);
+        transform.translate(+0.5, -0.5, 0);
+        GL11.glDisable(GL11.GL_DEPTH);
+        GL11.glDepthMask(false);
+        Resources.INSTANCE.colorShader.setUniform("color", new Vector4f(color).div(255));
+        Draw.triangles(Resources.INSTANCE.rectangleModel, Resources.INSTANCE.colorShader, Camera.DEFAULT_UI_CAMERA, transform);
+        GL11.glEnable(GL11.GL_DEPTH);
+        GL11.glDepthMask(true);
+    }
 
     public static void texture(Texture2D texture, Camera camera, Matrix4d transform, ShaderProgram shader) {
         GL11.glDisable(GL11.GL_DEPTH);
         GL11.glDepthMask(false);
         try (var ignored = texture.bindTextureOnSlot(0)) {
             Resources.INSTANCE.textureShader.setUniform("tex", 0);
-            Draw.triangles(Resources.INSTANCE.imageModel, shader == null ? Resources.INSTANCE.textureShader : shader, camera, transform != null ? transform : new Matrix4d().scaleXY(texture.getWidth(), texture.getHeight()));
+            Draw.triangles(Resources.INSTANCE.rectangleModel, shader == null ? Resources.INSTANCE.textureShader : shader, camera, transform != null ? transform : new Matrix4d().scaleXY(texture.getWidth(), texture.getHeight()));
         }
         GL11.glEnable(GL11.GL_DEPTH);
         GL11.glDepthMask(true);

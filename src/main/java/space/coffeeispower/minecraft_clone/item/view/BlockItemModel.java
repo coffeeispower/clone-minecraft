@@ -19,7 +19,7 @@ public class BlockItemModel implements ItemModel {
     private final BlockType block;
     private final BufferGroup blockModel;
     private final Texture2D blockIsometricProjection;
-    private static final int ISOMETRIC_TEXTURE_SIZE = 64;
+    private static final int ISOMETRIC_TEXTURE_SIZE = 55;
 
     public BlockItemModel(BlockType block) {
         this.block = block;

@@ -15,7 +15,7 @@ public class Player extends FallingCollidingEntity<Player> implements HasInvento
     private final Inventory inventory = new Inventory(9 * 4);
     private final Hotbar hotbar = new Hotbar(inventory, 0, (byte) 9);
     public Player(Vector3d position, World world) {
-        super(position, new Vector3d(0.7, 1.8, 0.7), world);
+        super(position, new Vector3d(0.7, 1.8, 0.7), world, 20);
         eye = new Camera(getEyePosition(), new Camera.Perspective(70));
     }
 

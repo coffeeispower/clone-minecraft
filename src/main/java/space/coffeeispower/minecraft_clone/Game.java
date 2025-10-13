@@ -80,8 +80,6 @@ public final class Game implements InfallibleAutoClose {
             worldRenderer.renderEntities(window, camera);
             worldRenderer.renderBlockHighlight(thePlayer, camera);
             worldRenderer.renderBlockBreaking(thePlayer, camera);
-//            itemModelRegistry.renderInFirstPersonView(ItemType.DiamondSword, new Matrix4d(), (Camera.Perspective) camera.mode(), window);
-//            itemModelRegistry.renderInInventory(ItemType.Grass, new Matrix4d().translate(0, 0, 0));
             thePlayer.renderFirstPersonView(itemModelRegistry, window);
             Crosshair.renderCrosshair();
 

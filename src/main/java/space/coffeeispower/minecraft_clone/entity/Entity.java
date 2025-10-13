@@ -16,10 +16,16 @@ public abstract class Entity<T extends Entity<T>> {
     protected Vector2d rotation = new Vector2d();
     protected Vector3d boundingBoxSize;
     protected final World world;
-    protected Entity(Vector3d position, Vector3d boundingBoxSize, World world) {
+    protected double hp;
+    protected final double maxHp;
+
+    protected Entity(Vector3d position, Vector3d boundingBoxSize, World world, double maxHp) {
         this.position = position;
         this.boundingBoxSize = boundingBoxSize;
         this.world = world;
+
+        this.maxHp = maxHp;
+        this.hp = maxHp;
     }
 
     public Vector3d getBoundingBoxSize() {

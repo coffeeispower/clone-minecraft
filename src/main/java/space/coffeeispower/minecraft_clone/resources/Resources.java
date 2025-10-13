@@ -130,7 +130,7 @@ public class Resources {
             }, 2)
     );
 
-    public final BufferGroup imageModel = new BufferGroup(
+    public final BufferGroup rectangleModel = new BufferGroup(
             new Buffer(new double[]{
                     -0.5f, -0.5f, 0,
                     0.5f, -0.5f, 0,

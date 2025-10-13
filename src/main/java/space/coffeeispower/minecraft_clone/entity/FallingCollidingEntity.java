@@ -13,13 +13,13 @@ public abstract class FallingCollidingEntity<T extends FallingCollidingEntity<T>
     private static final double airFriction = 0.94;       // resistência do ar
     private static final double groundFriction = 0.85;     // fricção com o chão
 
-    protected FallingCollidingEntity(Vector3d position, Vector3d boundingBoxSize, float gravityAcceleration, World world) {
-        super(position, boundingBoxSize, world);
+    protected FallingCollidingEntity(Vector3d position, Vector3d boundingBoxSize, float gravityAcceleration, World world, double maxHp) {
+        super(position, boundingBoxSize, world, maxHp);
         this.gravityAcceleration = gravityAcceleration;
     }
 
-    protected FallingCollidingEntity(Vector3d position, Vector3d boundingBoxSize, World world) {
-        this(position, boundingBoxSize, 25.6f, world);
+    protected FallingCollidingEntity(Vector3d position, Vector3d boundingBoxSize, World world, double maxHp) {
+        this(position, boundingBoxSize, 25.6f, world, maxHp);
     }
 
     @Override

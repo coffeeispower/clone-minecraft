@@ -9,6 +9,7 @@ import space.coffeeispower.minecraft_clone.item.view.ItemModelRegistry;
 import space.coffeeispower.minecraft_clone.math.AABBd;
 import space.coffeeispower.minecraft_clone.opengl.Camera;
 import space.coffeeispower.minecraft_clone.raycast.WorldRaycaster;
+import space.coffeeispower.minecraft_clone.ui.HotbarUI;
 import space.coffeeispower.minecraft_clone.window.Window;
 import space.coffeeispower.minecraft_clone.world.block.BlockType;
 
@@ -32,9 +33,14 @@ public class PlayerController {
     private boolean lastRightClickDown;
     private long lastRightClickRepeat;
     private final ItemSwapAnimationController itemSwapAnimationController = new ItemSwapAnimationController();
+    private boolean repeatRightClick = false;
+    private boolean justClicked;
+    private boolean justRightClicked;
+    private HotbarUI hotbarUi;
     public PlayerController(Player player, Window window) {
         this.player = player;
         this.window = window;
+        this.hotbarUi = new HotbarUI(player, window);
         window.setGrab(true);
     }
 
@@ -46,14 +52,36 @@ public class PlayerController {
 
     public void update(double deltaTime, Window window) {
         if (!window.isGrabbed()) return;
+        updateInputState(window);
         itemSwapAnimationController.update(deltaTime);
         hoveredBlock = getPlayer().raycast(3.6);
-        var justClicked = !lastLeftClickDown && window.isMouseDown(0);
-        var justRightClicked = !lastRightClickDown && window.isMouseDown(1);
+        hitOnLeftClick();
+        breakBlockOnRightClick(window);
+        swingWhileBreaking();
+        placeBlocksOnRightClick();
+        changeHotbarSlotWithMouseWheel(window);
+        changeHotbarSlotOnNumberKeypresses(window);
+        triggerSwapAnimationIfItemChanged();
+        // Atualizar o swing
+        updateSwing(deltaTime);
+
+        handleWalking(deltaTime);
+        handleMouseTurning();
+    }
+
+    private void hitOnLeftClick() {
+        if (justClicked) {
+            triggerSwing(0.15, 0.0);
+            // TODO: Dar hit em outras entidades
+        }
+    }
+
+    private void updateInputState(Window window) {
+        justClicked = !lastLeftClickDown && window.isMouseDown(0);
+        justRightClicked = !lastRightClickDown && window.isMouseDown(1);
         lastLeftClickDown = window.isMouseDown(0);
         lastRightClickDown = window.isMouseDown(1);
         var now = System.currentTimeMillis();
-        var repeatRightClick = false;
         if (justRightClicked) {
             lastRightClickRepeat = now;
         }
@@ -61,24 +89,12 @@ public class PlayerController {
             lastRightClickRepeat = now;
             repeatRightClick = true;
         }
-        if (justClicked) {
-            triggerSwing(0.15, 0.0);
-        }
-        // Clique esquerdo = quebrar bloco
-        if (window.isMouseDown(0)) {
-            if (hoveredBlock != null && !player.isBreakingBlock(hoveredBlock.blockPosition())) {
-                player.startBreakingBlock(hoveredBlock.blockPosition());
-            } else if (hoveredBlock == null) {
-                player.stopBreakingBlock();
-            }
-        } else {
-            player.stopBreakingBlock();
-        }
-        if (hoveredBlock != null && player.isBreakingBlock(hoveredBlock.blockPosition())) {
-            triggerSwing(0.20, 0.01);
-        }
+    }
+
+    private void placeBlocksOnRightClick() {
         var itemInHand = player.getItemInHand();
         var itemInHandAssociatedBlock = itemInHand == null ? null : itemInHand.type().getAssociatedBlock();
+
         if ((justRightClicked || repeatRightClick) && hoveredBlock != null && itemInHand != null && itemInHandAssociatedBlock != null) {
             var world = player.getWorld();
             var hitFace = hoveredBlock.getHitFace();
@@ -91,32 +107,48 @@ public class PlayerController {
                 player.decreaseItemInHand((short) 1);
             }
         }
+    }
+
+    private void changeHotbarSlotWithMouseWheel(Window window) {
         if (window.getScroll() != 0)
-            player.getHotbar().moveSelectedWrapping((int) Math.ceil(window.getScroll()));
+            player.getHotbar().moveSelectedWrapping((int) Math.floor(window.getScroll()));
+    }
+
+    private void changeHotbarSlotOnNumberKeypresses(Window window) {
         for (byte n_key = 0; n_key < player.getHotbar().getSlots(); n_key++) {
             if (window.isKeyPressed(GLFW_KEY_1 + n_key)) {
                 player.getHotbar().setSelectedPosition(n_key);
             }
         }
-        {
-            var newItem = player.getItemInHand();
-            var lastItemType = lastItem == null ? null : lastItem.type();
-            var newItemType = newItem == null ? null : newItem.type();
-            if (!Objects.equals(lastItemType, newItemType)) {
-                itemSwapAnimationController.triggerSwap(newItem, lastItem);
-            }
-        }
-        // Atualizar o swing
-        updateSwing(deltaTime);
+    }
 
-        handleWalking(deltaTime);
-        handleMouseTurning();
+    private void triggerSwapAnimationIfItemChanged() {
+        var itemInHand = player.getItemInHand();
+        var lastItemType = lastItem == null ? null : lastItem.type();
+        var newItemType = itemInHand == null ? null : itemInHand.type();
+        if (!Objects.equals(lastItemType, newItemType)) {
+            itemSwapAnimationController.triggerSwap(itemInHand, lastItem);
+        }
         lastItem = player.getItemInHand();
     }
 
-    // ==========================
-    // 🎬 Swing animation control
-    // ==========================
+    private void swingWhileBreaking() {
+        if (hoveredBlock != null && player.isBreakingBlock(hoveredBlock.blockPosition())) {
+            triggerSwing(0.20, 0.01);
+        }
+    }
+
+    private void breakBlockOnRightClick(Window window) {
+        if (window.isMouseDown(0)) {
+            if (hoveredBlock != null && !player.isBreakingBlock(hoveredBlock.blockPosition())) {
+                player.startBreakingBlock(hoveredBlock.blockPosition());
+            } else if (hoveredBlock == null) {
+                player.stopBreakingBlock();
+            }
+        } else {
+            player.stopBreakingBlock();
+        }
+    }
 
     public void triggerSwing(double allowEarlyReswing, double resetTo) {
         if (isSwinging && swingTimer < allowEarlyReswing) return; // já está a decorrer
@@ -189,38 +221,40 @@ public class PlayerController {
 
     public void renderFirstPersonView(ItemModelRegistry itemModelRegistry, Window window) {
         var itemInHand = itemSwapAnimationController.getItemToRender(player.getItemInHand());
-        if (itemInHand == null) return;
+        if (itemInHand != null) {
+            double swing = getSwingProgress();
+            Matrix4d transform = new Matrix4d();
 
-        double swing = getSwingProgress();
-        Matrix4d transform = new Matrix4d();
+            if (swing > 0) {
+                // Curva suavizada (ease in-out sinusoidal)
+                double swingSin = Math.sin(swing * Math.PI);
+                double negativeSwingSin = Math.sin((1 - swing * 2) * Math.PI);
 
-        if (swing > 0) {
-            // Curva suavizada (ease in-out sinusoidal)
-            double swingSin = Math.sin(swing * Math.PI);
-            double negativeSwingSin = Math.sin((1 - swing * 2) * Math.PI);
+                // Movimento do item (em blocos)
+                double offsetX = -0.5 * swingSin;  // move um pouco para a esquerda
+                double offsetY = 0.5 * negativeSwingSin;  // desce ligeiramente
+                double offsetZ = -1.0 * swingSin;  // vai um pouco para trás
 
-            // Movimento do item (em blocos)
-            double offsetX = -0.5 * swingSin;  // move um pouco para a esquerda
-            double offsetY = 0.5 * negativeSwingSin;  // desce ligeiramente
-            double offsetZ = -1.0 * swingSin;  // vai um pouco para trás
+                // Aplicar a translação do swing
+                transform.translate(offsetX, offsetY, offsetZ);
 
-            // Aplicar a translação do swing
-            transform.translate(offsetX, offsetY, offsetZ);
+                // Rotação suave (como o braço a balançar)
+                double rotX = -Math.toRadians(40.0 * swingSin);
+                double rotY = Math.toRadians(10.0 * swingSin);
+                double rotZ = Math.toRadians(20.0 * swingSin * 2);
 
-            // Rotação suave (como o braço a balançar)
-            double rotX = -Math.toRadians(40.0 * swingSin);
-            double rotY = Math.toRadians(10.0 * swingSin);
-            double rotZ = Math.toRadians(20.0 * swingSin * 2);
-
-            transform.rotateXYZ(rotX, rotY, rotZ);
+                transform.rotateXYZ(rotX, rotY, rotZ);
+            }
+            transform.translate(0, itemSwapAnimationController.getCurrentOffsetY(), 0);
+            itemModelRegistry.renderInFirstPersonView(
+                    itemInHand.type(),
+                    transform,
+                    new Camera.Perspective(70),
+                    window
+            );
         }
-        transform.translate(0, itemSwapAnimationController.getCurrentOffsetY(), 0);
-        itemModelRegistry.renderInFirstPersonView(
-                itemInHand.type(),
-                transform,
-                new Camera.Perspective(70),
-                window
-        );
+        hotbarUi.render(itemModelRegistry);
+
     }
 
 
