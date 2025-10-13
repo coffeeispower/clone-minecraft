@@ -3,29 +3,35 @@ package space.coffeeispower.minecraft_clone.entity.player;
 import org.joml.Matrix4d;
 import org.joml.Vector2d;
 import org.joml.Vector3i;
+import space.coffeeispower.minecraft_clone.entity.player.animation.ItemSwapAnimationController;
+import space.coffeeispower.minecraft_clone.item.ItemStack;
 import space.coffeeispower.minecraft_clone.item.view.ItemModelRegistry;
+import space.coffeeispower.minecraft_clone.math.AABBd;
 import space.coffeeispower.minecraft_clone.opengl.Camera;
 import space.coffeeispower.minecraft_clone.raycast.WorldRaycaster;
 import space.coffeeispower.minecraft_clone.window.Window;
 import space.coffeeispower.minecraft_clone.world.block.BlockType;
+
+import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class PlayerController {
 
     private static final float SENSITIVITY = 0.002f;
-    private static final double SWING_DURATION = 0.24; // segundos
+    private static final double SWING_DURATION = 0.26; // segundos
 
     private final Player player;
     private final Window window;
     private double lastMouseX, lastMouseY;
     private WorldRaycaster.BlockRaycastResult hoveredBlock;
 
-    // 🎬 Swing animation
     private boolean isSwinging = false;
     private double swingTimer = 0.0;
     private boolean lastLeftClickDown;
     private boolean lastRightClickDown;
+    private long lastRightClickRepeat;
+    private final ItemSwapAnimationController itemSwapAnimationController = new ItemSwapAnimationController();
     public PlayerController(Player player, Window window) {
         this.player = player;
         this.window = window;
@@ -36,16 +42,27 @@ public class PlayerController {
         return player;
     }
 
-    public void update(double deltaTime) {
-        if (!window.isGrabbed()) return;
+    private ItemStack lastItem;
 
+    public void update(double deltaTime, Window window) {
+        if (!window.isGrabbed()) return;
+        itemSwapAnimationController.update(deltaTime);
         hoveredBlock = getPlayer().raycast(3.6);
         var justClicked = !lastLeftClickDown && window.isMouseDown(0);
         var justRightClicked = !lastRightClickDown && window.isMouseDown(1);
         lastLeftClickDown = window.isMouseDown(0);
         lastRightClickDown = window.isMouseDown(1);
+        var now = System.currentTimeMillis();
+        var repeatRightClick = false;
+        if (justRightClicked) {
+            lastRightClickRepeat = now;
+        }
+        if (!justRightClicked && window.isMouseDown(1) && now - lastRightClickRepeat > 1000 / 5) {
+            lastRightClickRepeat = now;
+            repeatRightClick = true;
+        }
         if (justClicked) {
-            triggerSwing(true);
+            triggerSwing(0.15, 0.0);
         }
         // Clique esquerdo = quebrar bloco
         if (window.isMouseDown(0)) {
@@ -58,31 +75,52 @@ public class PlayerController {
             player.stopBreakingBlock();
         }
         if (hoveredBlock != null && player.isBreakingBlock(hoveredBlock.blockPosition())) {
-            triggerSwing(false);
+            triggerSwing(0.20, 0.01);
         }
         var itemInHand = player.getItemInHand();
         var itemInHandAssociatedBlock = itemInHand == null ? null : itemInHand.type().getAssociatedBlock();
-        if (justRightClicked && hoveredBlock != null && itemInHand != null && itemInHandAssociatedBlock != null) {
-            triggerSwing(true);
+        if ((justRightClicked || repeatRightClick) && hoveredBlock != null && itemInHand != null && itemInHandAssociatedBlock != null) {
             var world = player.getWorld();
             var hitFace = hoveredBlock.getHitFace();
-            world.setBlock(hoveredBlock.blockPosition().x + hitFace.getOffsetX(), hoveredBlock.blockPosition().y + hitFace.getOffsetY(), hoveredBlock.blockPosition().z + hitFace.getOffsetZ(), itemInHandAssociatedBlock);
-            player.decreaseItemInHand((short) 1);
+            var newBlockPosition = new Vector3i(hoveredBlock.blockPosition().x + hitFace.getOffsetX(), hoveredBlock.blockPosition().y + hitFace.getOffsetY(), hoveredBlock.blockPosition().z + hitFace.getOffsetZ());
+            var blockAABB = new AABBd(newBlockPosition);
+            var playerAABB = player.getAABB();
+            if (!blockAABB.intersects(playerAABB)) {
+                triggerSwing(0.15, 0.0);
+                world.setBlock(newBlockPosition, itemInHandAssociatedBlock);
+                player.decreaseItemInHand((short) 1);
+            }
+        }
+        if (window.getScroll() != 0)
+            player.getHotbar().moveSelectedWrapping((int) Math.ceil(window.getScroll()));
+        for (byte n_key = 0; n_key < player.getHotbar().getSlots(); n_key++) {
+            if (window.isKeyPressed(GLFW_KEY_1 + n_key)) {
+                player.getHotbar().setSelectedPosition(n_key);
+            }
+        }
+        {
+            var newItem = player.getItemInHand();
+            var lastItemType = lastItem == null ? null : lastItem.type();
+            var newItemType = newItem == null ? null : newItem.type();
+            if (!Objects.equals(lastItemType, newItemType)) {
+                itemSwapAnimationController.triggerSwap(newItem, lastItem);
+            }
         }
         // Atualizar o swing
         updateSwing(deltaTime);
 
         handleWalking(deltaTime);
         handleMouseTurning();
+        lastItem = player.getItemInHand();
     }
 
     // ==========================
     // 🎬 Swing animation control
     // ==========================
 
-    public void triggerSwing(boolean allowEarlyReswing) {
-        if (isSwinging && (!allowEarlyReswing || swingTimer < 0.18)) return; // já está a decorrer
-        swingTimer = 0;
+    public void triggerSwing(double allowEarlyReswing, double resetTo) {
+        if (isSwinging && swingTimer < allowEarlyReswing) return; // já está a decorrer
+        swingTimer = resetTo;
         isSwinging = true;
     }
 
@@ -150,7 +188,7 @@ public class PlayerController {
     }
 
     public void renderFirstPersonView(ItemModelRegistry itemModelRegistry, Window window) {
-        var itemInHand = player.getItemInHand();
+        var itemInHand = itemSwapAnimationController.getItemToRender(player.getItemInHand());
         if (itemInHand == null) return;
 
         double swing = getSwingProgress();
@@ -176,7 +214,7 @@ public class PlayerController {
 
             transform.rotateXYZ(rotX, rotY, rotZ);
         }
-
+        transform.translate(0, itemSwapAnimationController.getCurrentOffsetY(), 0);
         itemModelRegistry.renderInFirstPersonView(
                 itemInHand.type(),
                 transform,
@@ -184,5 +222,6 @@ public class PlayerController {
                 window
         );
     }
+
 
 }

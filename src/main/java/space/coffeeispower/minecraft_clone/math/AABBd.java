@@ -1,6 +1,7 @@
 package space.coffeeispower.minecraft_clone.math;
 
 import org.joml.Vector3d;
+import org.joml.Vector3i;
 
 import java.text.NumberFormat;
 
@@ -11,6 +12,11 @@ public class AABBd {
     public AABBd(Vector3d min, Vector3d max) {
         this.min = min;
         this.max = max;
+    }
+
+    public AABBd(Vector3i blockPosition) {
+        this.min = new Vector3d(blockPosition);
+        this.max = new Vector3d(blockPosition).add(1, 1, 1);
     }
     public AABBd() {
         this.min = new Vector3d();

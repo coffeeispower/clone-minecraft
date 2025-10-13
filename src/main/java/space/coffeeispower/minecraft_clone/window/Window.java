@@ -13,7 +13,7 @@ import static org.lwjgl.glfw.GLFW.*;
  */
 public final class Window implements InfallibleAutoClose {
     long id;
-
+    double scroll;
     public Window() {
         glfwDefaultWindowHints();
         id = glfwCreateWindow(800, 600, "Clone Minecraft - Projeto de Programação (Tiago e Daniel Londoño)", 0, 0);
@@ -28,6 +28,9 @@ public final class Window implements InfallibleAutoClose {
                 cb.dispatch();
             }
         });
+        glfwSetScrollCallback(id, (window, ignored, yoffset) -> {
+            scroll += yoffset;
+        });
         onKeyPress(GLFW_KEY_F11, this::toggleFullscreen);
     }
 
@@ -35,8 +38,13 @@ public final class Window implements InfallibleAutoClose {
         return glfwWindowShouldClose(id);
     }
 
+    public double getScroll() {
+        return scroll;
+    }
+
     public void swapBuffers() {
         glfwSwapBuffers(id);
+        scroll = 0;
     }
 
     public int width() {

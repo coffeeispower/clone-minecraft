@@ -59,11 +59,14 @@ public class World implements Closeable {
     }
 
     public static final int RENDER_DISTANCE = 8;
+    private static final int CORES_COUNT = Runtime.getRuntime().availableProcessors();
 
     public void loadChunksAround(double playerX, double playerZ) {
         var playerChunkX = (int) Math.floor(playerX / Chunk.CHUNK_WIDTH);
         var playerChunkZ = (int) Math.floor(playerZ / Chunk.CHUNK_WIDTH);
         var currentChunkPos = new Vector2i();
+        var threadsCount = chunkLoadStates.values().stream().filter((c) -> c instanceof GeneratingTerrain || c instanceof GeneratingMesh || c instanceof RegeneratingMesh).count();
+        var threadLimit = CORES_COUNT / 2;
         for (int x = playerChunkX - RENDER_DISTANCE; x < playerChunkX + RENDER_DISTANCE; x++) {
             for (int z = playerChunkZ - RENDER_DISTANCE; z < playerChunkZ + RENDER_DISTANCE; z++) {
                 currentChunkPos.x = x;
@@ -80,17 +83,23 @@ public class World implements Closeable {
                                 chunkLoadStates.put(new Vector2i(currentChunkPos), new GeneratedTerrain(chunk));
                             }
                             continue;
+                        } else if (threadsCount >= threadLimit) {
+                            continue;
                         }
                         var thread = createChunkGeneratorThread(currentChunkPos);
                         synchronized (chunkLoadStates) {
                             chunkLoadStates.put(new Vector2i(currentChunkPos), new GeneratingTerrain());
                         }
                         thread.start();
+                        threadsCount++;
                     }
                     case GeneratingTerrain ignored -> {
 
                     }
                     case GeneratedTerrain terrain -> {
+                        if (threadsCount >= threadLimit) {
+                            continue;
+                        }
                         var chunkPos = new Vector2i(currentChunkPos);
                         var thread = new Thread(() -> {
                             synchronized (chunkLoadStates) {
@@ -100,9 +109,14 @@ public class World implements Closeable {
                         synchronized (chunkLoadStates) {
                             chunkLoadStates.put(chunkPos, new GeneratingMesh());
                         }
+
                         thread.start();
+                        threadsCount++;
                     }
                     case NeedsRemeshing needsRemeshing -> {
+                        if (threadsCount >= threadLimit) {
+                            continue;
+                        }
                         var chunkPos = new Vector2i(currentChunkPos);
                         var thread = new Thread(() -> {
                             synchronized (chunkLoadStates) {
@@ -113,6 +127,7 @@ public class World implements Closeable {
                             chunkLoadStates.put(chunkPos, new RegeneratingMesh(needsRemeshing.model()));
                         }
                         thread.start();
+                        threadsCount++;
                     }
                     case GeneratingMesh ignored -> {
 
@@ -339,5 +354,11 @@ public class World implements Closeable {
     public double getBreakingProgress(Vector3i blockPosition) {
         var p = breakingStates.get(blockPosition);
         return p == null ? 0 : p.getProgress();
+    }
+
+    public void unloadAllChunks() {
+        synchronized (chunkLoadStates) {
+            chunkLoadStates.clear();
+        }
     }
 }

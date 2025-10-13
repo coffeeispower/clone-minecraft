@@ -47,10 +47,6 @@ public class WorldRenderer implements InfallibleAutoClose {
     }
 
 
-    private TextureAtlas.UVCoords getUVCoordsForBreakingStage(int stage) {
-        return Resources.INSTANCE.blockTextureAtlas.getUV(getTexturePathForBreakingStage(stage));
-    }
-
 
     public void renderWorld(Camera camera) {
         try (var ignored = Resources.INSTANCE.blockTextureAtlas.bindTextureOnSlot(0)) {

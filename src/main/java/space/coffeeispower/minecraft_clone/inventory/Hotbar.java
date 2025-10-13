@@ -21,9 +21,19 @@ public class Hotbar {
         return currentHotbarSlot;
     }
 
+    public int getSlots() {
+        return slots;
+    }
+
+    public ItemStack moveSelectedWrapping(int offset) {
+        return setSelectedPosition((byte) Math.floorMod((int) (getSelectedPosition() + offset), getSlots()));
+    }
     public ItemStack setSelectedPosition(byte hotbarPosition) {
         if (hotbarPosition > slots) {
             throw new IllegalArgumentException("A hotbar apenas tem " + slots + "slots, mas tentou selecionar o slot " + hotbarPosition);
+        }
+        if (hotbarPosition < 0) {
+            throw new RuntimeException("Não existe slots negativos, mas tentou usar o slot da hotbar " + hotbarPosition);
         }
         this.currentHotbarSlot = hotbarPosition;
         return inventory.getItem(getPositionInInventory());

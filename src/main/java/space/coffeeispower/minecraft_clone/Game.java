@@ -50,7 +50,9 @@ public final class Game implements InfallibleAutoClose {
         worldRenderer = new WorldRenderer(world);
         thePlayer = new PlayerController(world.spawnEntity(new Player(new Vector3d(0, 100, 0), world)), window);
         thePlayer.getPlayer().getInventory().add(new ItemStack(ItemType.Dirt, (short) 64));
+        thePlayer.getPlayer().getInventory().add(new ItemStack(ItemType.Bedrock, (short) 64));
         itemModelRegistry = new ItemModelRegistry();
+        window.onKeyPress(GLFW.GLFW_KEY_F8, world::unloadAllChunks);
     }
     /**
      * Inicia o loop de renderização do jogo, esta função bloqueia até o jogador fechar a janela.
@@ -62,7 +64,7 @@ public final class Game implements InfallibleAutoClose {
             var now = System.currentTimeMillis()/1000.;
             var deltaTime = now - lastTimeSec;
             lastTimeSec = now;
-            thePlayer.update(deltaTime);
+            thePlayer.update(deltaTime, window);
             var camera = thePlayer.getPlayer().getEye();
 
             world.garbageCollectChunks(camera.position().x(), camera.position().z());
