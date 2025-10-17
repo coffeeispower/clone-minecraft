@@ -99,6 +99,10 @@ public class WorldRenderer implements InfallibleAutoClose {
         glDepthMask(true);
     }
 
+    public World getWorld() {
+        return world;
+    }
+
     @Override
     public void close() {
         world.close();

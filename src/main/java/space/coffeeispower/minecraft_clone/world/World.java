@@ -43,7 +43,7 @@ public class World implements Closeable {
     private record GeneratedMesh(ChunkMeshGenerator.ChunkMesh mesh) implements ChunkLoadState {
     }
 
-    private record MeshUploaded(BufferGroup model) implements ChunkLoadState {
+    private record MeshUploaded(BufferGroup model, ChunkMeshGenerator.ChunkMesh chunkMesh) implements ChunkLoadState {
     }
 
     private record NeedsRemeshing(BufferGroup model) implements ChunkLoadState {
@@ -58,7 +58,7 @@ public class World implements Closeable {
         this.seed = seed;
     }
 
-    public static final int RENDER_DISTANCE = 8;
+    public static final int RENDER_DISTANCE = 4;
     private static final int CORES_COUNT = Runtime.getRuntime().availableProcessors();
 
     public void loadChunksAround(double playerX, double playerZ) {
@@ -140,7 +140,7 @@ public class World implements Closeable {
                         model.addBuffer(new Buffer(mesh.mesh().vertices(), 3));
                         model.addBuffer(new Buffer(mesh.mesh().uv(), 2));
                         synchronized (chunkLoadStates) {
-                            chunkLoadStates.put(new Vector2i(currentChunkPos), new MeshUploaded(model));
+                            chunkLoadStates.put(new Vector2i(currentChunkPos), new MeshUploaded(model, mesh.mesh()));
                         }
                     }
                     case NeedsReupload mesh -> {
@@ -148,7 +148,7 @@ public class World implements Closeable {
                         model.getBuffer(0).updateBuffer(mesh.mesh().vertices());
                         model.getBuffer(1).updateBuffer(mesh.mesh().uv());
                         synchronized (chunkLoadStates) {
-                            chunkLoadStates.put(new Vector2i(currentChunkPos), new MeshUploaded(model));
+                            chunkLoadStates.put(new Vector2i(currentChunkPos), new MeshUploaded(model, mesh.mesh()));
                         }
                     }
                     case MeshUploaded ignored -> {
@@ -193,10 +193,15 @@ public class World implements Closeable {
 
                             default -> null;
                         };
+                        var chunkMesh = switch (e.getValue()) {
+                            case MeshUploaded uploaded -> uploaded.chunkMesh();
+
+                            default -> null;
+                        };
                         if (model == null) {
                             return null;
                         }
-                        return new LoadedChunk(chunk, model);
+                        return new LoadedChunk(chunk, model, chunkMesh);
                     }).filter(Objects::nonNull);
         }
     }
@@ -220,7 +225,7 @@ public class World implements Closeable {
         }
     }
 
-    public record LoadedChunk(Chunk chunk, BufferGroup model) {
+    public record LoadedChunk(Chunk chunk, BufferGroup model, ChunkMeshGenerator.ChunkMesh chunkMesh) {
     }
 
     public Chunk getChunkAtBlock(int x, int z) {
@@ -288,7 +293,9 @@ public class World implements Closeable {
             chunk.setBlockAt(localX, y, localZ, block);
         }
         synchronized (chunkLoadStates) {
-            if (chunkLoadStates.get(chunk.getPosition()) instanceof MeshUploaded(BufferGroup model)) {
+            if (chunkLoadStates.get(chunk.getPosition()) instanceof MeshUploaded(BufferGroup model,
+                                                                                 ChunkMeshGenerator.ChunkMesh ignored
+                                                                                 )) {
                 chunkLoadStates.put(chunk.getPosition(), new NeedsRemeshing(model));
             }
         }
@@ -297,7 +304,7 @@ public class World implements Closeable {
     public void close() {
         for (var e: chunkLoadStates.entrySet()) {
             var mesh = e.getValue();
-            if (mesh instanceof MeshUploaded(var model)) {
+            if (mesh instanceof MeshUploaded(var model, var ignored)) {
                 model.close();
                 e.setValue(null);
             }

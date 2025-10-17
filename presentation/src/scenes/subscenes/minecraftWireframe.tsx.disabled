@@ -1,0 +1,113 @@
+// scenes/minecraftModel.tsx
+import {
+	createRef,
+	all,
+	beginSlide,
+	waitFor,
+	createSignal,
+	createEffect,
+	linear,
+	easeInElastic,
+	easeOutElastic,
+	easeOutQuart,
+	easeInOutCirc,
+} from "@motion-canvas/core";
+import { textStyles } from "../../lib/textStyles";
+import { Three } from "../../lib/Three";
+import playerCameraPosition from "../../assets/playerCamera.json";
+import {
+	Scene,
+	PerspectiveCamera,
+	Mesh,
+	MeshBasicMaterial,
+	Object3D,
+	Color,
+	TextureLoader,
+	NearestFilter,
+	SRGBColorSpace,
+	NoToneMapping,
+	Euler,
+	WebGLRenderer,
+	ColorManagement,
+	LinearSRGBColorSpace,
+} from "three";
+import { OBJLoader } from "three-stdlib";
+import { View2D, Rect, Txt } from "@motion-canvas/2d";
+
+const objLoader = new OBJLoader();
+const textureLoader = new TextureLoader();
+const texture = textureLoader.load("/worldTextureAtlas.png"); // Atlas exportado
+
+// --- Carregar o OBJ e aplicar o atlas ---
+texture.minFilter = NearestFilter;
+texture.magFilter = NearestFilter;
+texture.generateMipmaps = false;
+texture.colorSpace = LinearSRGBColorSpace;
+ColorManagement.enabled = true;
+
+const scene = new Scene();
+
+const model = await objLoader.loadAsync("/world.obj");
+let material: MeshBasicMaterial;
+model.traverse(child => {
+	if ((child as Mesh).isMesh) {
+		material = (child as Mesh).material = new MeshBasicMaterial({ map: texture, lightMapIntensity: 0, color: 0xdfdfdf });
+	}
+});
+scene.add(model);
+const camera = new PerspectiveCamera(75, 16 / 9, 0.1, 1000);
+
+// --- Configuração da cena Three.js ---
+// Câmera com posição/rotação exportadas do jogador
+const cameraData: { position: [number, number, number]; rotation: [number, number] } = playerCameraPosition as any;
+export function* minecraftWorld3DModel(view: View2D) {
+	const rotationSignal = createSignal(cameraData.rotation[1] as number);
+	const wireframeSignal = createSignal(true);
+	wireframeSignal(true);
+	camera.position.set(...cameraData.position);
+	camera.rotation.set(cameraData.rotation[0], cameraData.rotation[1], 0);
+
+	createEffect(() => {
+		camera.rotation.y = rotationSignal();
+		camera.rotation.order = "YXZ";
+	});
+	createEffect(() => {
+		material.wireframe = wireframeSignal();
+	});
+	// Referência para o node Three
+	const threeRef = createRef<Three>();
+
+	// --- Adiciona o node Three ao Motion Canvas ---
+	view.add(
+		<Three
+			ref={threeRef}
+			width={1920} // podes ajustar para ocupar toda a cena
+			height={1080}
+			scene={scene}
+			camera={camera}
+			zoom={1.0}
+			scale={0}
+			background="#05B4F0"
+			onRender={(renderer, scene, camera) => {
+				renderer.outputColorSpace = SRGBColorSpace;
+				renderer.toneMapping = NoToneMapping;
+				renderer.shadowMap.enabled = false;
+				renderer.render(scene, camera);
+			}}
+			zIndex={200}
+		/>,
+	);
+	yield threeRef().scale(1, 1.3, easeOutElastic);
+	// --- Slides da apresentação ---
+	yield* rotationSignal(cameraData.rotation[1] + Math.PI / 8, 3);
+	yield* beginSlide("Modelo 3D do mundo(wireframe)");
+	wireframeSignal(false);
+	const darkness = createSignal(0);
+	const itsAllTrianglesText = createSignal(0);
+	itsAllTrianglesText(-view.size().y);
+	yield* beginSlide("Modelo 3D do mundo");
+	view.add(<Rect width="100%" height="100%" fill="#000000" opacity={darkness} zIndex={5000} />);
+	view.add(<Txt text="É tudo triângulos!" y={itsAllTrianglesText} zIndex={5000} {...textStyles.heading1} />);
+	yield* all(darkness(0.5, 0.4), itsAllTrianglesText(0.0, 0.5, easeInOutCirc));
+	yield* beginSlide("É tudo triângulo");
+}

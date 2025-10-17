@@ -4,6 +4,7 @@ import org.joml.Vector3d;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import space.coffeeispower.minecraft_clone.debug.ExportWorldAsOBJ;
 import space.coffeeispower.minecraft_clone.entity.player.Player;
 import space.coffeeispower.minecraft_clone.entity.player.PlayerController;
 import space.coffeeispower.minecraft_clone.item.ItemStack;
@@ -53,6 +54,7 @@ public final class Game implements InfallibleAutoClose {
         thePlayer.getPlayer().getInventory().add(new ItemStack(ItemType.Bedrock, (short) 64));
         itemModelRegistry = new ItemModelRegistry();
         window.onKeyPress(GLFW.GLFW_KEY_F8, world::unloadAllChunks);
+        window.onKeyPress(GLFW.GLFW_KEY_F2, () -> ExportWorldAsOBJ.exportWorldAsObj(world, thePlayer.getPlayer()));
     }
     /**
      * Inicia o loop de renderização do jogo, esta função bloqueia até o jogador fechar a janela.
@@ -75,6 +77,7 @@ public final class Game implements InfallibleAutoClose {
 
             glViewport(0, 0, window.width(), window.height()); // Ter a certeza que o OpenGL está sincronizado com o tamanho da janela
             glClearColor(5f / 255, 180f / 255, 240f / 255, 1); // Preencher a janela com cinzento
+            // 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Limpar o ultimo frame
             worldRenderer.renderWorld(camera);
             worldRenderer.renderEntities(window, camera);

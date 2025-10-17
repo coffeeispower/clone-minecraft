@@ -1,0 +1,55 @@
+{
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"vcs": {
+		"clientKind": "git",
+		"defaultBranch": "main",
+		"enabled": true,
+		"useIgnoreFile": true
+	},
+	"files": {
+		"includes": ["*/**", "!dist/*", "!*.db", "!*.lockb", "!node_modules/", "!.direnv/", "!tsconfig.base.json"]
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"noUnusedImports": "warn",
+				"useExhaustiveDependencies": "off",
+				"useYield": "off"
+			},
+			"style": {
+				"noNonNullAssertion": "off",
+				"useConst": "warn",
+				"useAsConstAssertion": "warn",
+				"useForOf": "warn",
+				"noParameterAssign": "off",
+				"useNamingConvention": "off",
+				"useTemplate": "off"
+			},
+			"suspicious": {
+				"noControlCharactersInRegex": "off",
+				"noExplicitAny": "off",
+				"noAssignInExpressions": "info"
+			}
+		}
+	},
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": true,
+		"useEditorconfig": true,
+		"lineWidth": 150,
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"bracketSpacing": true
+	},
+	"javascript": {
+		"formatter": {
+			"quoteStyle": "double",
+			"semicolons": "always",
+			"trailingCommas": "all",
+			"arrowParentheses": "asNeeded"
+		}
+	}
+}

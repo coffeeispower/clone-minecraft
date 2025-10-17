@@ -1,0 +1,175 @@
+
+
+
+---
+
+## 🟢 Introdução – A história e a motivação
+Há algumas semanas, o professor lançou-nos um trabalho em Java. O requisito era simples: pelo menos seis classes, herança, e alguns enums. Um projecto para pôr em prática aquilo que aprendemos.
+
+Como muitos de vocês, eu cresci a brincar no Minecraft. Passei horas a jogar em servidores multiplayer, eu aprendi java por causa do minecraft. Esta foi a desculpa perfeita para ir mais longe: E se eu construísse o meu próprio mini‑Minecraft?
+
+Alguns amigos disseram “Estás louco, isso é demasiado para duas semanas!”. Mas como eu vi uma pessoa no youtube que fez em um fim de semana, certamente dá pra fazer em 2 semanas e eu estava certo.
+
+E foi assim que comecei: com uma ideia que devia ser """simples""" ao final de duas semanas, o projecto que devia ter seis classes tinha mais de trinta. Tinha um pequeno motor 3D, um mundo de blocos, um jogador que se move com colisão e até um inventário utilizando apenas OpenGL.
+
+Vou explicar como saí de um “Olá, mundo” e cheguei a um mundo 3D inteiro. Prometo que, mesmo que nunca tenham feito programação gráfica, vão perceber eu prometo.
+
+
+## 🔵 Como o computador desenha coisas – O pipeline e a analogia das lojas
+
+**Texto**
+Eu disse que usei OpenGL, mas o que é OpenGL?
+É como o **atendente de uma loja de chineses** em Portugal: fala sempre português connosco (os clientes), mesmo que nos bastidores todos falem chinês.
+
+Podemos trocar a loja por uma loja de marroquinos ou indianos – lá dentro o gerente e os empregados falam outra língua, mas ao balcão continuam a falar português connosco.
+
+No mundo gráfico é igual: podes trocar de fabricante de GPU (AMD, NVIDIA, Intel), a gerência muda, mas todos falam a mesma língua padrão (OpenGL) com os jogos.
+O OpenGL é uma API gráfica; um padrão que todas as placas gráficas seguem para conseguirmos mandar instruções para a placa gráfica.
+E o que nós podemos fazer com placas gráficas?
+Curiosamente, a placa gráfica só entende triângulos, ela não sabe o que é um quadrado ou um cubo.
+Pra fazermos um quadrado, precisamos de juntar 2 triangulos e fazemos um quadrado. Juntamos 12 triangulos e fazemos um cubo, juntamos milhares de triangulos e fazemos o mundo do minecraft.
+
+
+**Visuais/Animações Sugeridas**
+
+* Diagrama com “Jogo → OpenGL → Driver → GPU → Ecrã”, setas a acender conforme explicas.
+* Cartoon de uma loja com um atendente que fala português ao cliente e balões de fala em chinês nos bastidores.
+* O mesmo atendente com farda diferente (loja indiana/marroquina), continuando a falar português ao cliente, mas com balões de fala noutra língua atrás.
+* Animação de dois triângulos a juntarem‑se num quadrado e 12 triângulos a formarem um cubo.
+
+---
+
+## 🟠 A ilusão da profundidade – Porque o Z não chega
+
+**Texto**
+Mas ainda temos um problema: Colocar um cubo a 1 m ou a 10 m de distancia da camera dá o mesmo tamanho no ecrã. O valor Z, sozinho, não altera o aspecto.
+Para termos a sensação de profundidade precisamos de transformar as coordenadas 3D para 2D – isso faz‑se com as **projecções**.
+
+**Visuais/Animações**
+
+* *Slide 11*: Dois cubos na mesma escala, um perto e outro longe, parecendo do mesmo tamanho.
+* *Slide 12*: Ilustração do volume de visão com plano perto (clipping) e plano longe; cubos a serem cortados.
+* *Slide 13*: Gráfico do depth test: cubo A (mais perto) ganha; cubo B (mais longe) é descartado.
+
+---
+
+## 🟡 Como posicionar e mostrar os objectos – “Receitas”
+
+**Texto**
+
+1. “Usamos três ‘receitas’:
+
+   * **Receita do objecto**: diz onde o objecto aparece e como se roda.
+   * **Receita da câmara**: move todo o mundo ao contrário de nós, para dar a sensação de movimento.
+   * **Receita da lente**: decide se vemos em perspectiva (longes mais pequenos) ou de frente (tudo igual).”
+2. “Estas receitas dizem à placa gráfica como transformar os triângulos para a posição certa na janela.”
+
+**Visuais/Animações**
+
+* *Slide 14*: Um cubo a ser transladado, rodado e redimensionado conforme a primeira “receita”.
+* *Slide 15*: Câmara a deslocar-se para frente; ao mesmo tempo, o mundo move-se para trás (segunda “receita”).
+* *Slide 16*: Comparação entre vista ortogonal e vista em perspectiva (cubo longe fica menor).
+
+---
+
+## 🟢 O mundo em blocos – Voxels e Chunks
+
+**Texto**
+
+1. “O meu mundo é feito de pequenos cubos (voxels). Para gerir milhões deles, divido tudo em bairros (chunks) de 16×256×16.”
+2. “Só desenho as faces à vista – como numa maquete em que pintamos o exterior e deixamos o interior por pintar.”
+3. “Cada chunk torna-se numa lista de triângulos e vai de uma só vez para a placa gráfica, tornando tudo rápido.”
+
+**Visuais/Animações**
+
+* *Slide 17*: Voxel a multiplicar-se e encher um pequeno espaço.
+* *Slide 18*: Chunk completo; depois o mesmo chunk com faces internas removidas (só o “invólucro”).
+* *Slide 19*: Vários chunks a juntarem-se progressivamente e o mundo a aparecer.
+
+---
+
+## 🔴 Jogador e Interacção – Movimento e Raycasting
+
+**Texto**
+
+1. “O jogador tem posição, velocidade e rotação. As teclas movem‑nos; o rato gira a câmara.”
+2. “Para partir ou colocar blocos, lanço uma linha invisível – um laser – à frente. Essa linha atravessa os blocos e pára no primeiro que encontra.”
+
+**Visuais/Animações**
+
+* *Slide 20*: Personagem ou mão a andar e saltar num cenário voxel.
+* *Slide 21*: Linha vermelha a sair da câmara, atravessar o espaço e iluminar o bloco atingido.
+
+---
+
+## 🟣 Inventário e Troca de Itens – Hotbar e Animação da Mão
+
+**Texto**
+
+1. “O inventário é como uma prateleira de slots; a hotbar são os nove slots de acesso rápido.”
+2. “Um slot vazio é simplesmente `null` – não guarda nada.”
+3. “Trocar de item muda imediatamente o item real, mas a mão faz uma animação: desce com o item antigo e sobe com o novo.
+   Se mudar outra vez a meio, a animação reinicia a partir do ponto onde está. É só visual: a lógica do jogo não abranda.”
+
+**Visuais/Animações**
+
+* *Slide 22*: A hotbar a mostrar nove slots, com um quadrado destacado (item seleccionado).
+* *Slide 23*: Ícones a descer e subir quando trocas de item.
+* *Slide 24*: Divisão em duas “linhas do tempo”: acima, a lógica (item muda logo); abaixo, a animação (mão a descer e subir).
+
+---
+
+## 🟤 Interface (HUD) – Desenhar em 2D com 3D
+
+**Texto**
+
+1. “A interface (hotbar, inventário) é desenhada com os mesmos triângulos, mas em 2D. Uso um sistema de coordenadas centrado no ecrã, com o eixo vertical a crescer para cima.”
+2. “Desenho as caixas, as bordas e os ícones manualmente – não uso bibliotecas como Swing.”
+
+**Visuais/Animações**
+
+* *Slide 25*: Ecrã dividido em quadrantes com o centro marcado (0,0).
+* *Slide 26*: A hotbar e o inventário a “subir” do fundo do ecrã.
+* *Slide 27*: Destaque do slot seleccionado com uma transição suave de cor.
+
+---
+
+## ⚫ Desempenho e Limitações – Optimizações e Futuro
+
+**Texto**
+
+1. “Só reconstruo um chunk quando um bloco muda. Isto poupa muito trabalho e mantém 60 FPS nos testes.”
+2. “O que ainda falta: geração infinita de terreno, iluminação realista, e reconstrução de chunks em paralelo. São possíveis passos futuros.”
+
+**Visuais/Animações**
+
+* *Slide 28*: Gráfico simples de FPS estável.
+* *Slide 29*: Mundo infinito com contorno esbatido e um aviso de “Work in progress”.
+* *Slide 30*: Ícones de luz e de múltiplas threads (engrenagens) com um “em breve”.
+
+---
+
+## 🟡 Fecho – Resumo e Humor Final
+
+**Texto**
+
+1. “O professor pediu seis classes; eu construi um mini motor 3D com mais de trinta.”
+2. “Aprendi imenso e consegui passar de um “Olá, mundo” para um mundo de blocos e triângulos.”
+3. “No fundo, isto é só um ‘Olá, mundo’… com milhões de triângulos e atendentes de lojas que falam sempre português, mesmo com sotaques diferentes.”
+4. “Obrigado pela vossa atenção!”
+
+**Visuais/Animações**
+
+* *Slide 31*: Contador a subir de “6 classes” para “30+ classes”.
+* *Slide 32*: Montagem final de todas as imagens (blocos, triângulos, laser, hotbar).
+* *Slide 33*: Triângulos a cair como confetti enquanto o texto final aparece.
+
+---
+
+### Dicas finais para memorizar a introdução
+
+* **Cinco imagens-chave** para a introdução: *professor (trabalho simples)* → *Minecraft (infância)* → *desafio (louco mas possível)* → *progresso (de 6 para 30 classes)* → *promessa ao público*. Memorizando estas cinco cenas, consegues recontar a história sem decorar todas as palavras.
+* **Acrónimo ou frase** para a estrutura global: por exemplo, “P-M-D-T-I-U-F” ou inventa uma frase divertida como “**P** rofessor **M** andou **D** eserter a **T** riângulos, **I** nventei e **U** tilizei (muitos) **F**ois.” Isto ajuda a lembrar a ordem das seções.
+* **Ensaios curtos**: conta a história com as tuas próprias palavras, seguindo as imagens mentais. Vê se consegues dizer cada secção olhando apenas para a palavra-chave.
+
+Com este guião e as animações associadas, tens uma apresentação bem estruturada, acessível e visualmente rica, que destaca tanto a tua história pessoal como os conceitos técnicos de forma envolvente.
